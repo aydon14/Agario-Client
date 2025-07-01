@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>Agario Server Client</title>
+<link rel="canonical" href="index.html"/>
+<link id="favicon" rel="icon" type="image/png" href="favicon-32x32.png"/>
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link href="css/metro.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css?family=Ubuntu:700' rel='stylesheet' type='text/css'>
+<link href="css/bootstrap.min.css" rel="stylesheet">
+
+<link href="css/master.css" rel="stylesheet" type="text/css">
+<style>#helloContainer,.connecting-panel{position:absolute;top:50%;left:50%;margin-right:-50%;-webkit-transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);transform:translate(-50%,-50%);}</style>
+<script src="js/jquery.js"></script>
+<script src="js/bootstrap.min.js"></script>
+ <script src="environment.js"></script>
+<script src="i18n.js"></script>
+<script src="jss/main_out.js"></script>
+<script>
+
+</script>
+<script>
+
+var dfp = null;
+var dfpBottom = null;
+var dfpStats = null;
+var dfpInitial = null;
+
+window['aa'] = [];
+window['ab'] = [];
+window['ac'] = [];
+
+</script>
+<script>
+setInterval(
+		function(){
+			if ( window.client!==undefined ){
+				window.client = undefined;
+				window.client2 = undefined;
+				window.agarServer = undefined;
+				window.bots = undefined;
+				
+				delete window.client;
+				delete window.client2;
+				delete window.agarServer;
+				delete window.bots;
+			}
+		}, 
+		1000);	
+</script>
+</head>
+<body>
+<div id="overlays" style="display:none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 200;">
+<div id="helloContainer" data-logged-in="0" data-has-account-data="0" data-party-state="0" data-results-state="0" data-gamemode="">
+<div class="side-container">
+</button>
+<div class="circle small red quests" style="display:none"><span class="outlined-text"></span></div>
+<span class="timer menu-timer"></span>
+<style type="text/css">
+<!--
+.style1 {
+	color: #FFFF00;
+	font-weight: bold;
+}
+-->
+</style>
+ 
+</div>
+<div id="mainPanel" class="agario-panel">
+<form role="form">
+<div class="form-group clearfix" style="display:flex; justify-content: center;">
+<div style="float: left;"><h1>Agar.io Client</h1></div>
+<div style="float: right; margin-top: 0px; height: 40px;">
+<div class="clearfix">
+</div>
+</div>
+</div>
+<div class="form-group clearfix">
+<input id="nick" class="form-control" placeholder="Nickname" maxlength="15" style="width:100%;" autofocus />
+</div>
+<div id="locationUnknown">
+<input id="region" class="form-control" placeholder="ws://127.0.0.1:8080" style="width:100%">
+</div>
+<div class="form-group" id="agario-main-buttons">
+<div class="row">
+<button type="button" onClick="$('#settings, #instructions').toggle();return false;" class="btn btn-info btn-settings"><i class="glyphicon glyphicon-cog"></i></button>
+<button disabled type="submit" onClick="setNick(document.getElementById('nick').value); return false;" class="btn btn-play btn-primary btn-needs-server" data-itr="play"></button>
+<button type="button" onClick="rY();" class="btn btn-play-guest btn-success btn-needs-server" data-itr="Play"></button>
+</div>
+<div id="socialLoginContainer" style="display:none;">
+</div>
+</div>
+<div id="settings" class="checkbox" style="display:none;">
+<div style="float: left; width: 200px;">
+<div id="locationKnown"></div>
+<div id="options" style="margin: 6px; font-size: 12px;">
+<label><input type="checkbox" onChange="setSkins(!$(this).is(':checked'));"><span data-itr="option_no_skins"></span></label>
+<label><input type="checkbox" onChange="setNames(!$(this).is(':checked'));"><span data-itr="option_no_names"></span></label>
+<label><input type="checkbox" onChange="setColors($(this).is(':checked'));"><span data-itr="option_no_colors"></span></label>
+<label><input type="checkbox" onChange="setShowMass($(this).is(':checked'));"><span data-itr="option_show_mass"></span></label>
+<label><input type="checkbox" onChange="setDarkTheme($(this).is(':checked'));"><span data-itr="option_dark_theme"></span></label>
+<label><input type="checkbox" onChange="setSkipStats($(this).is(':checked'));"><span data-itr="option_skip_stats"></span></label>
+</div>
+</div>
+<br clear="both"/>
+</div>
+</form>
+<div id="instructions">
+<hr/>
+<center><span class="text-muted">
+<span data-itr="instructions_mouse"></span><br/>
+<span data-itr="instructions_space"></span><br/>
+<span data-itr="instructions_w"></span><br/>
+</span></center>
+</div>
+<hr/>
+<center>
+<a href="fun/index.html" target="_blank">
+<button type="button" class="btn btn-fun-mode" data-itr="fun-mode"></button>
+</a>
+</center>
+<center style="margin-top: 15px;">
+<a href="https://github.com/aydon14/Agario-Server/releases/download/v1.0/Server.7z">
+<button type="button" class="btn btn-download-server" data-itr="download-server"></button>
+</a>
+</center>
+<center style="margin-top: 15px;">
+<a href="https://github.com/aydon14/Agario-Server/releases/download/v1.0/Client.7z">
+<button type="button" class="btn btn-download-client" data-itr="download-client"></button>
+</a>
+</center>
+<hr/>
+<center><span class="text-muted">
+<span data-itr="about_1"></span><br/>
+<span data-itr="about_2"></span><br/>
+</span></center>
+<hr/>
+<center>
+<div id="" style="margin-bottom: 10px; width: 300px; height: 60px;">
+</div>
+</center>
+</div>
+<div id="stats" style="display: none;" class="agario-panel">
+<h2><center>Match Results</center></h2>
+<canvas id="statsGraph" width="350" height="230"></canvas>
+<div id="statsPelletsContainer">
+ 
+<span id="statsText" class="stats-food-eaten"></span>
+<span id="statsSubtext" data-itr="stats_food_eaten"></span></div>
+<div id="statsHighestMassContainer">
+ 
+<span id="statsText" class="stats-highest-mass"></span>
+<span id="statsSubtext" data-itr="stats_highest_mass"></span></div>
+<div id="statsTimeAliveContainer">
+ 
+<span id="statsText" class="stats-time-alive"></span>
+<span id="statsSubtext" data-itr="stats_time_alive"></span></div>
+<div id="statsTimeLeaderboardContainer">
+ 
+<span id="statsText" class="stats-leaderboard-time"></span>
+<span id="statsSubtext" data-itr="stats_leaderboard_time"></span></div>
+<div id="statsPlayerCellsEatenContainer">
+ 
+<span id="statsText" class="stats-cells-eaten"></span>
+<span id="statsSubtext" data-itr="stats_cells_eaten"></span></div>
+<div id="statsTopPositionContainer">
+ 
+<span id="statsText" class="stats-top-position">?</span>
+<span id="statsSubtext" data-itr="stats_top_position"></span></div>
+<hr style="position:absolute;bottom:370px;width:100%;margin:0px;"/>
+<button id="statsContinue" class="btn btn-primary" data-itr="continue" onClick="closeStats();"></button>
+<hr style="position:absolute;bottom:255px;width:100%;"/>
+<div id="s300x250">
+<div id="yandex_rtb_R-A-13534410-9"></div>
+</div>
+</div>
+<div class="side-container">
+<div class="agario-party">
+<div class="agario-panel agario-side-panel agario-party-0">
+<h4><center data-itr="party"></center></h4>
+<div style="margin-bottom: 12px;" data-itr="party_description"></div>
+<div class="clearfix" style="margin: 0px -10px 0px -10px;">
+<button class="btn btn-primary" style="width: 102.5px; float: left;" onClick="$('#helloContainer').attr('data-party-state', '3');createParty();" data-itr="create_party"></button>
+<button class="btn btn-primary" style="width: 102.5px; float: right;" onClick="$('#joinPartyToken').val('');$('#helloContainer').attr('data-party-state', '2');" data-itr="join_party"></button>
+</div>
+</div>
+<div class="agario-panel agario-side-panel agario-party-1">
+<h4><center data-itr="party"></center></h4>
+<div style="margin-bottom: 12px;" data-itr="create_party_instructions"></div>
+<div class="clearfix">
+<input type="text" value="??????" readonly class="partyToken form-control" style="cursor: text; width: 130px; float: left; border-radius: 4px 0px 0px 4px;"/>
+<button class="btn btn-primary copy-party-token" style="float: right; width: 60px; border-radius: 0px 4px 4px 0px;">Copy</button>
+</div>
+</div>
+<div class="agario-panel agario-side-panel agario-party-2">
+<h4><center data-itr="party"></center></h4>
+<div style="margin-bottom: 12px;" data-itr="join_party_instructions"></div>
+<input id="joinPartyToken" type="text" value="" class="form-control"/>
+<div class="clearfix" style="margin: 10px -10px 0px -10px;">
+<button class="btn btn-primary" style="width: 210px; float: right;" onClick="joinParty($('#joinPartyToken').val());" data-itr="join_party"></button>
+</div>
+</div>
+<div class="agario-panel agario-side-panel agario-party-3" style="padding: 0px; overflow: hidden; position: relative;">
+<canvas width="220" height="100" class="cell-spinner" data-size="26"></canvas>
+<div class="creating-party-text" data-itr="creating_party"></div>
+</div>
+<div class="agario-panel agario-side-panel agario-party-4" style="padding: 0px; overflow: hidden; position: relative;">
+<canvas width="220" height="100" class="cell-spinner" data-size="26"></canvas>
+<div class="creating-party-text" data-itr="joining_party"></div>
+</div>
+<div class="agario-panel agario-side-panel agario-party-5">
+<h4><center data-itr="party"></center></h4>
+<div style="margin-bottom: 12px;" data-itr="joined_party_instructions"></div>
+<div class="clearfix">
+<input type="text" value="??????" readonly class="partyToken form-control" style="cursor: text; width: 125px; float: left;"/>
+<button class="btn btn-primary copy-party-token" style="float: right; width: 60px;">Copy</button>
+</div>
+</div>
+<div class="agario-panel agario-side-panel agario-party-6">
+<h4><center data-itr="party"></center></h4>
+<div style="margin-bottom: 12px;" data-itr="party_join_error"></div>
+<div class="clearfix" style="margin: 10px -10px 0px -10px;">
+</div>
+</div>
+<div style="position: absolute; right: 10px; top: 4px;">
+<button type="button" class="close" onClick="cancelParty();">&times;</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="reklam2" style="float:left; position:fixed;"><!-- Yandex.RTB R-A-13534410-7 -->
+<div id="yandex_rtb_R-A-13534410-7"></div>
+</div>
+<div id="reklam1" style="float:right; position:fixed;"><!-- Yandex.RTB R-A-13534410-6 -->
+<div id="yandex_rtb_R-A-13534410-6"></div>
+</div>
+
+<center>
+<center>
+</div>
+</div>
+<div id="connecting" style="display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 100;">
+<div class="connecting-panel" style="width: 350px; background-color: #FFFFFF; margin: auto; border-radius: 15px; padding: 5px 15px 5px 15px;">
+<h2 data-itr="connecting"></h2>
+<p data-itr="connect_help"></p>
+</div>
+</div>
+<canvas id="canvas" width="800" height="600"></canvas>
+<div style="font-family:'Ubuntu'">&nbsp;</div>
+<script>
+
+$(function () {
+	$('[data-itr]').each(function(){
+		var $this = $(this);
+		var itr = $this.attr('data-itr');
+		$this.html(i18n[itr] || i18n_dict['en'][itr] || itr);
+		//$this.html('');
+	});
+	
+	$('.btn-login').tooltip({
+		'html': true,
+		'title': i18n['login_tooltip'],
+		'placement': 'bottom'
+	});
+});
+
+</script>
+
+
+	<script>
+var say = 0;
+var hop = 1;
+
+function rY(){
+var pisnick = document.getElementById('nick').value;
+var temiznick = pisnick.replace(/[|&҈҉ۣۣۣۣ;+,]/g, ":)");
+setNick(temiznick);
+}
+</script>
+<script>
+ var aiptag = aiptag || {};
+ aiptag.consented = true; //GDPR setting, please set this value to false if an EU user has declined or not yet accepted marketing cookies, for users outside the EU please use true
+ aiptag.cmd = aiptag.cmd || [];
+ aiptag.cmd.player = aiptag.cmd.player || [];
+	function  initAipPreroll() {
+		aiptag.cmd.player.push(function() {
+adplayer = new aipPlayer({
+AD_WIDTH: 960,
+AD_HEIGHT: 540,
+AD_FULLSCREEN: true,
+PREROLL_ELEM: document.getElementById('preroll'),
+AIP_COMPLETE: function() {
+ rY();
+},
+AIP_REMOVE: function() {}
+});
+});
+}
+
+	function getScript(src, callback) {
+		var headElm = document.head || document.getElementsByTagName('head')[0];
+		var script = document.createElement("script");
+		var once = true;
+		script.async = "async";
+		script.type = "text/javascript";
+		script.charset = "UTF-8";
+		script.src = src;
+		script.onload = script.onreadystatechange = function() {
+			if (once && (!script.readyState || /loaded|complete/.test(script.readyState))) {
+				once = false;
+				callback();
+				script.onload = script.onreadystatechange = null;
+			}
+		};
+		headElm.appendChild(script);
+	}
+	
+getScript('../api.adinplay.com/libs/aiptag/pub/AGA/agario.fun/tag.min.js', initAipPreroll);
+	
+ 
+	
+</script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();
+   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "../mc.yandex.ru/metrika/tag.js", "ym");
+
+   ym(99468294, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true
+   });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/99468294" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+</body>
+
+<!-- Mirrored from agario.fun/ by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 09 Mar 2025 23:28:29 GMT -->
+</html>

@@ -1,0 +1,1 @@
+window.EnvConfig={"env_production":true,"fb_app_id":677505792353827,"master_url":"agario.fun","socketEndpoint":'wss://5.196.214.40:443',"xsolla_endpoint":"https://agario.fun","fb_endpoint":"https://www.facebook.com/playagario.fun"}
