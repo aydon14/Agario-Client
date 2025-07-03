@@ -31,17 +31,3 @@ btn-dailyquests,.btn-potions,.btn-leagues{display:block;float:left;height:35px;f
   background-color: rgba(0, 0, 200, 0.8);
   color: white;
 }
-
-.btn-download-client {
-  background-color: rgba(255, 165, 0, 0.8);
-  width: 100%;
-  color: white;
-}
-.btn-download-client:hover {
-  background-color: rgba(210, 120, 0, 0.8);
-  color: white;
-}
-.btn-download-client:active {
-  background-color: rgba(200, 110, 0, 0.8);
-  color: white;
-}

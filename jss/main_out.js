@@ -52,13 +52,7 @@
         setInterval(ca, 40);
         qa("EU-London");
         0 == Ja && y && M();
-        e("#region").on("keydown", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                W = e("#region").val();
-                Ma(W, 0);
-            }
-        });
+        Ma(0);
         pa(0);
         hb();
         d.location.hash && 6 <= d.location.hash.length && kb(d.location.hash)
@@ -138,14 +132,18 @@
     function ob() {
         var a = ++Ja;
         if (W == "") W = "ws://127.0.0.1:8080";
-        a == Ja && Ma(W, 0);
+        a == Ja && Ma(0);
     }
 
     function M() {
         Ga && y && (e("#connecting").show(), ob())
     }
 
-    function Ma(a, b) {
+    function Ma(b) {
+        let a = "ws://127.0.0.1:8080";
+        if (!["", null].includes(e("#region").val())) {
+            a = e("#region").val();
+        }
         if (r) {
             r.onopen = null;
             r.onmessage = null;
@@ -734,7 +732,7 @@
                 e(".partyToken").val("//agario.fun/" + d.encodeURIComponent(a));
                 e("#helloContainer").attr("data-party-state", "5");
                 ga(":party");
-                Ma("ws://" + b[0], a)
+                Ma(a)
             },
             dataType: "text",
             method: "POST",

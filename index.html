@@ -88,7 +88,7 @@ setInterval(
 <div class="row">
 <button type="button" onClick="$('#settings, #instructions').toggle();return false;" class="btn btn-info btn-settings"><i class="glyphicon glyphicon-cog"></i></button>
 <button disabled type="submit" onClick="setNick(document.getElementById('nick').value); return false;" class="btn btn-play btn-primary btn-needs-server" data-itr="play"></button>
-<button type="button" onClick="rY();" class="btn btn-play-guest btn-success btn-needs-server" data-itr="Play"></button>
+<button type="button" onClick="rY();" id="btnPlay" class="btn btn-play-guest btn-success btn-needs-server" data-itr="Play"></button>
 </div>
 <div id="socialLoginContainer" style="display:none;">
 </div>
@@ -123,15 +123,9 @@ setInterval(
 </a>
 </center>
 <center style="margin-top: 15px;">
-<a href="https://github.com/aydon14/Agario-Server/releases/download/v1.0/Server.7z">
+<a href="https://github.com/aydon14/Agario-Server/releases/">
 <button type="button" class="btn btn-download-server" data-itr="download-server"></button>
 </a>
-</center>
-<center style="margin-top: 15px;">
-<a href="https://github.com/aydon14/Agario-Server/releases/download/v1.0/Client.7z">
-<button type="button" class="btn btn-download-client" data-itr="download-client"></button>
-</a>
-</center>
 <hr/>
 <center><span class="text-muted">
 <span data-itr="about_1"></span><br/>
@@ -241,9 +235,6 @@ setInterval(
 <div id="reklam1" style="float:right; position:fixed;"><!-- Yandex.RTB R-A-13534410-6 -->
 <div id="yandex_rtb_R-A-13534410-6"></div>
 </div>
-
-<center>
-<center>
 </div>
 </div>
 <div id="connecting" style="display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 100;">
@@ -274,7 +265,7 @@ $(function () {
 </script>
 
 
-	<script>
+<script>
 var say = 0;
 var hop = 1;
 
@@ -284,66 +275,6 @@ var temiznick = pisnick.replace(/[|&҈҉ۣۣۣۣ;+,]/g, ":)");
 setNick(temiznick);
 }
 </script>
-<script>
- var aiptag = aiptag || {};
- aiptag.consented = true; //GDPR setting, please set this value to false if an EU user has declined or not yet accepted marketing cookies, for users outside the EU please use true
- aiptag.cmd = aiptag.cmd || [];
- aiptag.cmd.player = aiptag.cmd.player || [];
-	function  initAipPreroll() {
-		aiptag.cmd.player.push(function() {
-adplayer = new aipPlayer({
-AD_WIDTH: 960,
-AD_HEIGHT: 540,
-AD_FULLSCREEN: true,
-PREROLL_ELEM: document.getElementById('preroll'),
-AIP_COMPLETE: function() {
- rY();
-},
-AIP_REMOVE: function() {}
-});
-});
-}
-
-	function getScript(src, callback) {
-		var headElm = document.head || document.getElementsByTagName('head')[0];
-		var script = document.createElement("script");
-		var once = true;
-		script.async = "async";
-		script.type = "text/javascript";
-		script.charset = "UTF-8";
-		script.src = src;
-		script.onload = script.onreadystatechange = function() {
-			if (once && (!script.readyState || /loaded|complete/.test(script.readyState))) {
-				once = false;
-				callback();
-				script.onload = script.onreadystatechange = null;
-			}
-		};
-		headElm.appendChild(script);
-	}
-	
-getScript('../api.adinplay.com/libs/aiptag/pub/AGA/agario.fun/tag.min.js', initAipPreroll);
-	
- 
-	
-</script>
-
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript" >
-   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-   m[i].l=1*new Date();
-   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-   (window, document, "script", "../mc.yandex.ru/metrika/tag.js", "ym");
-
-   ym(99468294, "init", {
-        clickmap:true,
-        trackLinks:true,
-        accurateTrackBounce:true
-   });
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/99468294" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
 </body>
 
 <!-- Mirrored from agario.fun/ by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 09 Mar 2025 23:28:29 GMT -->
