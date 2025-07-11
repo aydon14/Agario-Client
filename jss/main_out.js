@@ -1,8 +1,4 @@
-
 (function(d, e) {
-
-
-  
     function Mb() {
         Ga = !0;
         L = Ha = document.getElementById("canvas");
@@ -91,12 +87,10 @@
     }
 
     function lb() {
-        e("#adsBottom").hide();
         e("#overlays").hide();
         e("#stats").hide();
         e("#mainPanel").hide();
         V = fa = !1;
-        mb(d.aa.concat(d.ac))
     }
 
     function qa(a) {
@@ -104,25 +98,13 @@
     }
 
     function pa(a) {
-        fa || V || (I = null, Ka || (e("#adsBottom").show(), e("#g300x250").hide(), e("#a300x250").show()), nb(Ka ? d.ac : d.aa), Ka = !1, 1E3 > a && (s = 1), fa = !0, e("#mainPanel").show(), 0 < a ? e("#overlays").fadeIn(a) : e("#overlays").show())
+        fa || V || (I = null, Ka || null, Ka = !1, 1E3 > a && (s = 1), fa = !0, e("#mainPanel").show(), 0 < a ? e("#overlays").fadeIn(a) : e("#overlays").show())
     }
 
     function ga(a) {
         e("#helloContainer").attr("data-gamemode", a);
         W = a;
         e("#gamemode").val(a)
-    }
-
-    function nb(a) {
-        d.googletag && d.googletag.cmd.push(function() {
-            La && (La = !1, setTimeout(function() {
-                La = !0
-            }, 6E4 * Pb), d.googletag && d.googletag.pubads && d.googletag.pubads().refresh && d.googletag.pubads().refresh(a))
-        })
-    }
-
-    function mb(a) {
-        d.googletag && d.googletag.pubads && d.googletag.pubads().clear && d.googletag.pubads().clear(a)
     }
 
     function ha(a) {
@@ -375,7 +357,7 @@
         C = a.getUint32(b, !0);
         b += 4;
         for (f = 0; f < C; f++) p = a.getUint32(b, !0), b += 4, m = J[p], null != m && m.R();
-        Ra && 0 == l.length && (ub = Date.now(), Ua = !1, fa || V || (vb ? (nb(d.ab), Yb(), V = !0, e("#overlays").fadeIn(3E3), e("#stats").show()) : pa(3E3)))
+        Ra && 0 == l.length && (ub = Date.now(), Ua = !1, fa || V || (vb ? (Yb(), V = !0, e("#overlays").fadeIn(3E3), e("#stats").show()) : pa(3E3)))
     }
 
     function Vb() {
@@ -840,7 +822,7 @@
                 Aa = 1E4,
                 g = 1,
                 y = null,
-                Hb = !0,
+                Hb = 0,
                 Ea = !0,
                 db = !1,
                 Ra = !1,
@@ -880,13 +862,10 @@
             })();
             var E = new Image;
             E.src = "img/background.png";
-            var fb = "ontouchstart" in d && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(d.navigator.userAgent),
-                Za = new Image;
-            Za.src = "img/split.png";
+            var fb = "ontouchstart" in d && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(d.navigator.userAgent);
             var Kb = document.createElement("canvas");
             if ("undefined" == typeof console || "undefined" == typeof DataView || "undefined" == typeof WebSocket || null == Kb || null == Kb.getContext || null == d.localStorage) alert("You browser does not support this game, we recommend you to use Firefox to play this");
             else {
-                var ta = null;
                 d.setNick = function(a) {
                     d.ga && d.ga("send", "event", "Nick", a.toLowerCase());
                     lb();
@@ -896,7 +875,7 @@
                 };
                 d.setRegion = qa;
                 var Ka = !0;
-                d.setSkins = function(a) {
+                d.setJelloPhysics = function(a) {
                     Hb = a
                 };
                 d.setNames = function(a) {
@@ -923,261 +902,7 @@
                     Ya = a
                 };
                 null != d.localStorage && (null == d.localStorage.AB9 && (d.localStorage.AB9 = 0 + ~~(100 * Math.random())), Jb = +d.localStorage.AB9, d.ABGroup = Jb);
-                e.get(cb + "//agario.fun/gc/", function(a) {
-                    var b = a.split(" ");
-                    a = b[0];
-                    b = b[1] || ""; - 1 == ["UA"].indexOf(a) && Lb.push("ussr");
-                    ma.hasOwnProperty(a) && ("string" == typeof ma[a] ? y || qa(ma[a]) : ma[a].hasOwnProperty(b) && (y || qa(ma[a][b])))
-                }, "text");
-                var La = !0,
-                    Pb = 0,
-                    ma = {
-                        AF: "BR-Brazil",
-                        AX: "BR-Brazil",
-                        AL: "BR-Brazil",
-                        DZ: "BR-Brazil",
-                        AS: "BR-Brazil",
-                        AD: "BR-Brazil",
-                        AO: "BR-Brazil",
-                        AI: "BR-Brazil",
-                        AG: "BR-Brazil",
-                        AR: "BR-Brazil",
-                        AM: "BR-Brazil",
-                        AW: "BR-Brazil",
-                        AU: "BR-Brazil",
-                        AT: "BR-Brazil",
-                        AZ: "BR-Brazil",
-                        BS: "BR-Brazil",
-                        BH: "BR-Brazil",
-                        BD: "BR-Brazil",
-                        BB: "BR-Brazil",
-                        BY: "BR-Brazil",
-                        BE: "BR-Brazil",
-                        BZ: "BR-Brazil",
-                        BJ: "BR-Brazil",
-                        BM: "BR-Brazil",
-                        BT: "BR-Brazil",
-                        BO: "BR-Brazil",
-                        BQ: "BR-Brazil",
-                        BA: "BR-Brazil",
-                        BW: "BR-Brazil",
-                        BR: "BR-Brazil",
-                        IO: "BR-Brazil",
-                        VG: "BR-Brazil",
-                        BN: "BR-Brazil",
-                        BG: "BR-Brazil",
-                        BF: "BR-Brazil",
-                        BI: "BR-Brazil",
-                        KH: "BR-Brazil",
-                        CM: "BR-Brazil",
-                        CA: "BR-Brazil",
-                        CV: "BR-Brazil",
-                        KY: "BR-Brazil",
-                        CF: "BR-Brazil",
-                        TD: "BR-Brazil",
-                        CL: "BR-Brazil",
-                        CN: "BR-Brazil",
-                        CX: "BR-Brazil",
-                        CC: "BR-Brazil",
-                        CO: "BR-Brazil",
-                        KM: "BR-Brazil",
-                        CD: "BR-Brazil",
-                        CG: "BR-Brazil",
-                        CK: "BR-Brazil",
-                        CR: "BR-Brazil",
-                        CI: "BR-Brazil",
-                        HR: "BR-Brazil",
-                        CU: "BR-Brazil",
-                        CW: "BR-Brazil",
-                        CY: "BR-Brazil",
-                        CZ: "BR-Brazil",
-                        DK: "BR-Brazil",
-                        DJ: "BR-Brazil",
-                        DM: "BR-Brazil",
-                        DO: "BR-Brazil",
-                        EC: "BR-Brazil",
-                        EG: "BR-Brazil",
-                        SV: "BR-Brazil",
-                        GQ: "BR-Brazil",
-                        ER: "BR-Brazil",
-                        EE: "BR-Brazil",
-                        ET: "BR-Brazil",
-                        FO: "BR-Brazil",
-                        FK: "BR-Brazil",
-                        FJ: "BR-Brazil",
-                        FI: "BR-Brazil",
-                        FR: "BR-Brazil",
-                        GF: "BR-Brazil",
-                        PF: "BR-Brazil",
-                        GA: "BR-Brazil",
-                        GM: "BR-Brazil",
-                        GE: "BR-Brazil",
-                        DE: "BR-Brazil",
-                        GH: "BR-Brazil",
-                        GI: "BR-Brazil",
-                        GR: "BR-Brazil",
-                        GL: "BR-Brazil",
-                        GD: "BR-Brazil",
-                        GP: "BR-Brazil",
-                        GU: "BR-Brazil",
-                        GT: "BR-Brazil",
-                        GG: "BR-Brazil",
-                        GN: "BR-Brazil",
-                        GW: "BR-Brazil",
-                        GY: "BR-Brazil",
-                        HT: "BR-Brazil",
-                        VA: "BR-Brazil",
-                        HN: "BR-Brazil",
-                        HK: "BR-Brazil",
-                        HU: "BR-Brazil",
-                        IS: "BR-Brazil",
-                        IN: "BR-Brazil",
-                        ID: "BR-Brazil",
-                        IR: "BR-Brazil",
-                        IQ: "BR-Brazil",
-                        IE: "BR-Brazil",
-                        IM: "BR-Brazil",
-                        IL: "BR-Brazil",
-                        IT: "BR-Brazil",
-                        JM: "BR-Brazil",
-                        JP: "BR-Brazil",
-                        JE: "BR-Brazil",
-                        JO: "BR-Brazil",
-                        KZ: "BR-Brazil",
-                        KE: "BR-Brazil",
-                        KI: "BR-Brazil",
-                        KP: "BR-Brazil",
-                        KR: "BR-Brazil",
-                        KW: "BR-Brazil",
-                        KG: "BR-Brazil",
-                        LA: "BR-Brazil",
-                        LV: "BR-Brazil",
-                        LB: "BR-Brazil",
-                        LS: "BR-Brazil",
-                        LR: "BR-Brazil",
-                        LY: "BR-Brazil",
-                        LI: "BR-Brazil",
-                        LT: "BR-Brazil",
-                        LU: "BR-Brazil",
-                        MO: "BR-Brazil",
-                        MK: "BR-Brazil",
-                        MG: "BR-Brazil",
-                        MW: "BR-Brazil",
-                        MY: "BR-Brazil",
-                        MV: "BR-Brazil",
-                        ML: "BR-Brazil",
-                        MT: "BR-Brazil",
-                        MH: "BR-Brazil",
-                        MQ: "BR-Brazil",
-                        MR: "BR-Brazil",
-                        MU: "BR-Brazil",
-                        YT: "BR-Brazil",
-                        MX: "BR-Brazil",
-                        FM: "BR-Brazil",
-                        MD: "BR-Brazil",
-                        MC: "BR-Brazil",
-                        MN: "BR-Brazil",
-                        ME: "BR-Brazil",
-                        MS: "BR-Brazil",
-                        MA: "BR-Brazil",
-                        MZ: "BR-Brazil",
-                        MM: "BR-Brazil",
-                        NA: "BR-Brazil",
-                        NR: "BR-Brazil",
-                        NP: "BR-Brazil",
-                        NL: "BR-Brazil",
-                        NC: "BR-Brazil",
-                        NZ: "BR-Brazil",
-                        NI: "BR-Brazil",
-                        NE: "BR-Brazil",
-                        NG: "BR-Brazil",
-                        NU: "BR-Brazil",
-                        NF: "BR-Brazil",
-                        MP: "BR-Brazil",
-                        NO: "BR-Brazil",
-                        OM: "BR-Brazil",
-                        PK: "BR-Brazil",
-                        PW: "BR-Brazil",
-                        PS: "BR-Brazil",
-                        PA: "BR-Brazil",
-                        PG: "BR-Brazil",
-                        PY: "BR-Brazil",
-                        PE: "BR-Brazil",
-                        PH: "BR-Brazil",
-                        PN: "BR-Brazil",
-                        PL: "BR-Brazil",
-                        PT: "BR-Brazil",
-                        PR: "BR-Brazil",
-                        QA: "BR-Brazil",
-                        RE: "BR-Brazil",
-                        RO: "BR-Brazil",
-                        RU: "BR-Brazil",
-                        RW: "BR-Brazil",
-                        BL: "BR-Brazil",
-                        SH: "BR-Brazil",
-                        KN: "BR-Brazil",
-                        LC: "BR-Brazil",
-                        MF: "BR-Brazil",
-                        PM: "BR-Brazil",
-                        VC: "BR-Brazil",
-                        WS: "BR-Brazil",
-                        SM: "BR-Brazil",
-                        ST: "BR-Brazil",
-                        SA: "BR-Brazil",
-                        SN: "BR-Brazil",
-                        RS: "BR-Brazil",
-                        SC: "BR-Brazil",
-                        SL: "BR-Brazil",
-                        SG: "BR-Brazil",
-                        SX: "BR-Brazil",
-                        SK: "BR-Brazil",
-                        SI: "BR-Brazil",
-                        SB: "BR-Brazil",
-                        SO: "BR-Brazil",
-                        ZA: "BR-Brazil",
-                        SS: "BR-Brazil",
-                        ES: "BR-Brazil",
-                        LK: "BR-Brazil",
-                        SD: "BR-Brazil",
-                        SR: "BR-Brazil",
-                        SJ: "BR-Brazil",
-                        SZ: "BR-Brazil",
-                        SE: "BR-Brazil",
-                        CH: "BR-Brazil",
-                        SY: "BR-Brazil",
-                        TW: "BR-Brazil",
-                        TJ: "BR-Brazil",
-                        TZ: "BR-Brazil",
-                        TH: "BR-Brazil",
-                        TL: "BR-Brazil",
-                        TG: "BR-Brazil",
-                        TK: "BR-Brazil",
-                        TO: "BR-Brazil",
-                        TT: "BR-Brazil",
-                        TN: "BR-Brazil",
-                        TR: "BR-Brazil",
-                        TM: "BR-Brazil",
-                        TC: "BR-Brazil",
-                        TV: "BR-Brazil",
-                        UG: "BR-Brazil",
-                        UA: "BR-Brazil",
-                        AE: "BR-Brazil",
-                        GB: "BR-Brazil",
-                        US: "BR-Brazil",
-                        UM: "BR-Brazil",
-                        VI: "BR-Brazil",
-                        UY: "BR-Brazil",
-                        UZ: "BR-Brazil",
-                        VU: "BR-Brazil",
-                        VE: "BR-Brazil",
-                        VN: "BR-Brazil",
-                        WF: "BR-Brazil",
-                        EH: "BR-Brazil",
-                        YE: "BR-Brazil",
-                        ZM: "BR-Brazil",
-                        ZW: "BR-Brazil"
-                    },
-                    O = null;
+                var O = null;
                 d.connect = Ma;
                 var ua = 500,
                     Xa = null,
@@ -1190,20 +915,26 @@
                 var A = null,
                     G = 1,
                     Ca = null,
-                    ib = function() {
-                        var a = Date.now(),
-                            b = 1E3 / 60;
-                        return function() {
-                            d.requestAnimationFrame(ib);
-                            var c = Date.now(),
-                                e = c - a;
-                            e > b && (a = c - e % b, !$() || 240 > Date.now() - rb ? Ab() : console.warn("Skipping draw"), gc())
-                        }
-                    }(),
                     aa = {},
                     Lb = "poland;usa;china;russia;vinesauce;canada;australia;spain;brazil;germany;ukraine;france;sweden;chaplin;north korea;south korea;japan;united kingdom;earth;greece;latvia;lithuania;estonia;finland;norway;cia;maldivas;austria;nigeria;reddit;yaranaika;confederate;9gag;indiana;4chan;italy;bulgaria;tumblr;2ch.hk;hong kong;portugal;jamaica;german empire;mexico;sanik;switzerland;croatia;chile;indonesia;bangladesh;thailand;iran;iraq;peru;moon;botswana;bosnia;netherlands;european union;taiwan;pakistan;hungary;satanist;qing;hitler;nazi;godfather;nasa;pirate1;twitter;youtube;2ch;turkey;trabzonspor;thuglife;texas;stussy;steam;stalin;somalia;sir;sealand;scotland;romania;receita federal;quebec;prussia;prodota;pokerface;piccolo;pewdiepie;patriarchy;origin;nah;mhp;matriarchy;mars;luxembourg;kc;isis;ireland;india;imperial japan;gamerrocko;galatasaray;french kingdom;fenerbahce;feminism;facepunch;facebook;ea;doge;denmark;chp;cambodia;byzantium;besiktas;belgium;bait;ayy lmao;ataturk;argentina;aog;anonim;akp;8ch;8;berlusconi;blatter;boris;bush;cameron;chavez;clinton;cuba;dilma;fidel;hillary;hollande;irs;kim jong-un;merkel;obama;palin;putin;qing dynasty;queen;trump;tsarist russia;tsipras;ussr;wojak;venezuela;bruce lee;osmanli;google;alien;mr. bean;bruce lee;adolf hitler;chuck norris;gangnam style;pou;talking angela;talking tom;angry birds;barbie;schwarzenegger;barbıe;chucky;stallone;jeanclaudedamme;jackie chan;yip man;pierce brosnan;al pacino;hay day;pink panther;pinocchio;tom and jerry;bugs bunny;baby hazel;taz-mania;spiderman;fred and barney;russell crowe;jason statham;jim carrey;leonardo;batman;peter pan;beetle juice;superman;he-man;hulk;dracula;turkmenistan;kazakhstan;kyrgyzstan;tajikistan;uzbekistan;fiji;kiribati;marshallıslands;micronesia;nauru;new zealand;palau;papuanewguinea;samoa;solomon ıslands;tonga;tuvalu;vanuatu;egypt;ısrael;catalonia;czech republic;colombia;algeria;belarus;north brabant;friesland;albania;cyprus;ıceland;liechtenstein;macedonia;malta;moldova;serbia;slovakia;slovenia;soccer;baseball;rainbow;pacman;illuminati;alabama;alaska;baghdadi;baratheon;bart;beavis;brian;butthead;cartman;coca cola;creeper;death star;dirt block;dollar;donut;euro;eye of sauron;finn;forever alone;giraffe;girl;godzilla;google chrome;hello kitty;herobrine;hole;homer;ice king;jew;kirchner;lannister;lenny face;leopard;lgbt;marceline;marge;montgomery;pizza;pokemon;rockstar;sheep;skeleton1;steve;stewie;targaryen;tiger;zebra;zombie;yugoslavia;jolokia pepper;troll;sungerbob;el salvador;basketball;ınstagram;mona lisa;mario;erdogan;davutoglu;mortal kombat;mcdonald's;atarı;apple;army;banana;birdie;bite;bomb;bowling;breakfast;brofist;bug;candy;cat;cloud;cookie;crazy;dog;donuts;evil;eye;frog;galaxy;goldfish;halloween;heart;hockey;ıce king;jupiter;luchador;mercury;monster;mouse;mushroom;neptune;nose;nuclear;octopus;owl;panda;pluto;radar;saturn;scarecrow;seal;snowman;spy;sun;target;terrible;toxic;turtle;uranus;venus;virus;wolf;polıce;pirate;bubblegum;enderman;heisenberg;jake;lisa;peter;kirby;awesome;ı love google;anna frozen;cinderella;elsa;counter-strike;frogout;gaston;blobfish;luigi;mr. popo;spongegar;spurdo;stitch;garfield;ıron man;ninja turtles;joker;saw;santa claus1;christmas tree;kendall draeger;bat;bear;cougar;coyote;crocodile;fly;fox;hunter;kraken;lion;lizard;mammoth;master chief;panther;raptor;shark;shrek;snake;spider;sumo;t-rex;wasp;bonibon;jelibon;smurfs;eye illusions;airplane;helicopter;train;whatsapp;ship;google search;space shuttle;error;taylor swift;katy perry;jennifer lopez;rihanna;inna;i love google;kennedy;snoop dogg;casper;caillou;the jetsons;scooby doo;iron man;atari;instagram;wing chun;police;tintin;call of duty;robocop;terminator;everthrill;asterix;bart simpson;donald duck;daisy duck;mickey mouse;atom ant;yogi bear;boo boo;wile e. coyote;road runner;cedric;denver dinosaur;daffy duck;ghostbusters;heidi;speedy gonzales;red riding hood;the mask;e.t.;minecraft;killer clown;king kong;ariel;dora;rapunzel;sofia;black hole;halo;star ball;hot dog;piggie;blueberry;hamburger;moo;tomato;ghost;footprint;apple face;pineapple;toon;smile;sad;facepalm;brain;evil eye;ufo;spiderman2;shuttle;cs go;astronaut;rocket;rainbow1;boot;gold pot;hat;leprechaun;mr. bean1;meteor;alien1;space dog;choco egg;carrot;statue;rooster;rabbit;watermelon1;eye2;arcade;power;green man;slime face;jelly blob;alien x;space hunter;thirteen;crow;black cat;mask;witch;soccer ball;keeper;soccer boot;striker;star player;chihuahua;cactus;sombrero;chilli pepper;chupa cabra;earth day;april fool;gingerbread;cupcake;boy kiss;girl kiss;cupid;tender bear;funshine bear;bright raccoon;cozy penguin;lotsa elephant;brave lion;crazy ball;sky rocket;starsandstripes;mighty;uncle sam;mummy ball;eye ball;baseball smile;hornhead;skull face;cannon ball;eagle;sunbath;watermelon;star fish;icecream face;surfer;diver;liberty;birthday sanik;birthday wojak;birthday cia;birthday sir;birthday doge;birthday troll;birthday lol;hot coffee;soda can;jelly face;french fries;burger face;tortilha;chicken leg;tennis;gymnastic;judo fighter;swimmer;athletic;cake;leaf clover;blue;green;red;yellow;pinhata;alan;gordon;john;scott;the hood;sherbert;virgil;kayo;parrot;rascal;pirate maiden;captain skull;captain;bullseye;touche;jab;backswing;spike;flame;gamma;neila;omicron;vega;smyg;white horse;monk;water spirit;boar;kong;new basketball;bull king;inspectorgadget;richie rich;she-ra;snoopy;sylvester;tweety;popeye;transformers;terminita;sea explorer;jade dragon;golf;horse shoe;mico;monkey;ping pong;squiggly;toco;love;water drop;squirrel;acorn;maple;badger;prey;300 spartans;pine head;sea turtle;volcano;coco nuts;warrior;viper;biker;desert fox;ranger;devourer;toxic eater;ogre;scavenger;marauder;mutant;dead raider;undead;phantom;werewolf;mummy;vampire;masked;ooze;grey tiger;infernando;calavera;pumpkin;calaca;frankenstein;skeleton;poison rose;skull cactus;arachno kid;star girl;tiger man;dr. cosmos;infernando;iron knight;matjoy;n0psa;omega blast;sly;x-ray;aqua;dark matter;major eagle;colossus;ignis;terra;thanksgiving;pie slice;virginia;pilgrim;mr. pumpkin;aer;raider;faun;bread;croc;happy;hazmat;nuke;pug;berserker;champion;icy braid;jotun;viking;winter wolf;basilisk;firebird;dark wings;gryphon;magic gerbil;pixie;hobgoblin;root gnome;cosmo pirate;cyber guard;space warden;moon ship;star pilot;reindeer;penguin;polar bear;flying cork;happy soda;elf helper;santa claus;husky brawl;kempo tiger;street bull;rhino boxer;rogue bunny;bruiser goat;wicked cat;best friends;time dude;chrono ranger;time doctor;cool agent;neon bug;dynamite guy;duck target;jumper;bubblesaurus;kosovo;chicken;china dragon;fire rooster;carp;dumpling;bad boy;heartbreaker;poet;superstar;idol;rocker;virtuoso;drone;king;love arrow;choco heart;strawberry;sheriff;jade;thief;tiny jack;merry outlaw;trickster;bird mask;palm tree;samba;mountain;golden mask;icon;soloist;metal face;songsmith;diva;performer;dragon;gargoyle;gopher;blue swirl;bunny;evil master;ısland scar;sirius;tyt;behemoth;huntsman;war paint;general;giant skull;great zilla;bad clover;happy hat;horse boot;cat cauldron;excalibur;mystic bird;seal knight;air bag;cyber agent;detective;droid;funny face;gold rush;magic hat;red beard;smelly;frog thai;karate parrot;king lion;raccoon jutsu;coil;cool bunny;easter chick;wacky egg;destroyer;eyeball;storm fist;taurus;war hero;alien tree;crystal;hot taco;maracas;power badger;starfighter;crazy sombrero;primal;sabertooth;silver tusk;amber;fire face;gemini;stone tool;fallen;power girl;wacky hero;bat ball;eyepatch;jellyfish ball;mega power;sheep ball;skull ribbon;walrus ball;guy fawkes mask;apocalypse rider;eclipse hunter;universal ranger;elephant ball;pig ball;slaughter;slingblade;professional;lionel messi;tıtanıc;cyber scarab;haste;mechatron;psycho driller;sonic boom;zodiac cancer;celebration hat;mr. boss;star eagle;bitter;cursed blade;funky;gladiatrix;helm;hungry;lovesick;odd;orc grunt;orc warrior;queasy;reptilian;sad2;vicious;cool;full;mischievous;sweaty;tough;wicked;crazy brain;dry face;zombie dog;oyster;voltron;dumbo;archer;mage;paladin;rogue;tıtanıc;black hole;gold coin;super car;war tank;war wings;virgo;dazzled;delighted;hercules;medusa;nerdy;pixel kong;poseidon;power fighter;rabid;raid boss;rayday;scroll;silent fox;techno kid;the maw;zombie party;ınna;insectoid;olympus ares;zap;healing potion;irma hurricane;funny;dragon griffin;dragon hydra;dragon twin;Ä±sland scar;ajdar;cloud prism;cogs;football strike;nvr shadow;agar.lol;dr. static;steam freak;ankh;cleopatra;egyptian cat;pharaoh;ankh;anubis;cursed blade;elder master;geisha;hades;orc grunt;shogun;skull samurai;banshee;dragon viper;metal ghoul;psycho;balrog;blanka;chun lı;dhalsım;e.honda;guıle;ken;m.bıson;ryu;sagat;vega;zangıef;bean whistler;bolt samurai;mega mecha;spinner kid;power ninja;hmm;jason;snowboarder;white owl;goofy yeti;barbarian;dire wolf;frog Kid;frost giant;giant human;ımp;jackal;night hunter;nvr shuriken;sagittarius;salamander  ;leo;spark;walking hand;warlock;wendigo;wood elf;pepsi;agario.fun;agar.fun;burly man;firespitter;genie;ringmaster;the oracle;the gaunt;the miasma;the reaper;the scorcher;alpaca;aries;bullet man;capricorn;circus grizzly;libra;mad cap;raspy elf;scorpio;soul hunter;wicked clown;zany tree;devil;fire giant;little zilla;phoenix;purple dragon;sausage;snack shark;worm skull;red dragon;spooky;gouache;pencil;splatter;cave painting;cave troll;crazy eye;nice doggy;party mode;yeti;mr. bean face;circle;coolguy;duel master;furious;steam mask;robo kid;flying saucer;infernus;shadow man;big eyes;necktie cat;tea time;burner;candlelight;crazy bolt;eye five;future art;groovy canvas;hornet;sea wizard;spike flower;alien kid;bubble fish;cyber commando;elven noble;eternal snake;pyramid eye;reaper;snow biker;triceratops;wolf sigil;logan;supertank.io;slartie;chirpy raptor;frost hand;omega;radical smile;helmet;lead;wolf paw;idea;party time;skull bow;surprised cat;unicorn;bootlegger;madjawz;skull artifact;angel;deadly piranha;heavy metal;prankster;som theorist;wacky hyena;zone;birthday blob;death mouse;egyptian plague;grumpy frog;killer mask;cool lion;dark sorceress;princess swift;tooth troll;bad pigeon;bass bomb;feather dragon;lightning;merchant bionic;silly griffin;sugardash;ashwin;baby octopus;cyber demon;fallen one;goddess aona;golden axe;grandma;guinea pig;hunter leech;metal scorpion;midnight yeti;mutant herb;old one;olympus zeus;scarecrows;spike fish;techno ninja;zula gorgan;charming;cyber psychic;diamonds;dumboon;electro jelly;electronic girl;guardian;puzzled;strange;cursed samurai;fire golem;spectral owl;araneaphyx;necro strangler;neptunus spider;sinbad;blobby boy;dracool;frankie;chillpanzee;corsair;mad fragment;tape guy;think tank;cookie mouse;ice griffin;ironfist titus;nightmare;power mask;silent nun;space ink;space warrior;dapper dog;ice crystal;planet cat;bewitched;big banjo;masked menace;monday worker;of light;walrus art;pinkie pie;good morning;good bye;virus2;agar.love;candy troll;darts of fury;dynamite;getdeadkid;ısland seer;madness;squid;abductor;aquarius;astral deer;awkward;bad santa;beat box;beetoothven;bionic ram;birthosaur;blue skull;brute prankster;bull skull;cactus flower;candy genius;captain joe;cat burglar;cog attack;color runner;cosmic horse;crazy rudolph;cuppy;cyber monk;cyber punk;cybernaut;demonic helmet;divine pearl;dragon razor;dragon slayer;eager alien;egypt scarab;evil genie;forest spirit;fox mask;game host;gnome mage;golf battle;good boy;husky;hyper coffee;jelly bear;love cat;lucky doll;mad muffin;mariachi;mechanicat;melting man;mexican skull;moon alisa;mr goose;mummy king;murder ball;mushroom face;nutcracker;pepe loco;pisces;poker ace;power glove;psycho panda;punk;red fiend;rocket deer;rogue samurai;roller bot;sandworm;shrieker;skull magician;skull swords;sleepy fox;slime beast;smooth operator;snout;snowy joe;sour candy;spogh;steam diver;sunflower;suplex;techno quack;the stranger;tiny reaper;troldir;unknown totem;vampy;voracious;war mask;warhorse;wasted mouse;watson;wicked vendetta;wide eye;wilson;wolf man;yellow streak;demolition expert;awesome pug;coconuts;cool duck;crazy dog;cyclops;head ball 2;kristoffer;leviathan;mistik;odd shroom;purple hacker;rainbow slap;skull claus;snay;zone2;battle angel;jelly diver;songbird;tlingit mask;toco bones;bunny tron;carnivorous;chip cookie;clever;electro chick;meme rage;power2;titan cthulhu;bad bone;baddie;chilled homie;dog life;omnom gator;swag royalty;x-mas;ark raider;bad pepper;coronavirus;dollhouse;kobe;sonic;sweetie".split(";"),
                     hc = "8;nasa;kim jong-un;trump;queen;palin;fidel;hillary;berlusconi;blatter;boris;bush;cameron;chavez;clinton;cuba;venezuela;tsipras;putin;dilma;hollande;merkel;obama;aog;google;twitter;youtube;pirate1;alien;mr. bean;bruce lee;adolf hitler;chuck norris;gangnam style;pou;talking angela;talking tom;angry birds;barbie;schwarzenegger;barbıe;chucky;stallone;jeanclaudedamme;jackie chan;yip man;pierce brosnan;al pacino;hay day;pink panther;pinocchio;tom and jerry;bugs bunny;baby hazel;taz-mania;spiderman;fred and barney;russell crowe;jason statham;jim carrey;leonardo;batman;peter pan;beetle juice;superman;he-man;hulk;dracula;soccer;baseball;rainbow;pacman;baratheon;bart;beavis;brian;butthead;cartman;coca cola;creeper;death star;dirt block;dollar;donut;euro;eye of sauron;finn;forever alone;giraffe;girl;godzilla;google chrome;hello kitty;herobrine;hole;homer;ice king;jew;kirchner;lannister;lenny face;leopard;lgbt;marceline;marge;montgomery;pizza;pokemon;rockstar;sheep;skeleton1;steve;stewie;targaryen;tiger;zebra;zombie;jolokia pepper;troll;sungerbob;basketball;ınstagram;mona lisa;mario;erdogan;davutoglu;mortal kombat;mcdonald's;atarı;apple;army;banana;birdie;bite;bomb;bowling;breakfast;brofist;bug;candy;cat;cloud;cookie;crazy;dog;donuts;evil;eye;frog;goldfish;halloween;heart;hockey;ıce king;luchador;monster;mouse;mushroom;nose;nuclear;octopus;owl;panda;radar;scarecrow;seal;snowman;spy;target;terrible;toxic;turtle;;virus;wolf;polıce;pirate;bubblegum;enderman;heisenberg;jake;lisa;peter;kirby;awesome;ı love google;anna frozen;cinderella;elsa;counter-strike;frogout;gaston;blobfish;luigi;mr. popo;spongegar;spurdo;stitch;garfield;ıron man;ninja turtles;joker;saw;santa claus1;christmas tree;kendall draeger;bat;bear;cougar;coyote;crocodile;fly;fox;hunter;kraken;lion;lizard;mammoth;master chief;panther;raptor;shark;shrek;snake;spider;sumo;t-rex;wasp;bonibon;jelibon;smurfs;eye illusions;airplane;helicopter;train;whatsapp;ship;google search;space shuttle;error;taylor swift;katy perry;jennifer lopez;rihanna;inna;i love google;kennedy;snoop dogg;casper;caillou;the jetsons;scooby doo;iron man;atari;instagram;wing chun;police;tintin;call of duty;robocop;terminator;everthrill;asterix;bart simpson;donald duck;daisy duck;mickey mouse;atom ant;yogi bear;boo boo;wile e. coyote;road runner;cedric;denver dinosaur;daffy duck;ghostbusters;heidi;speedy gonzales;red riding hood;the mask;e.t.;minecraft;killer clown;king kong;ariel;dora;rapunzel;sofia;halo;star ball;hot dog;piggie;blueberry;hamburger;moo;smile;tomato;ghost;footprint;apple face;pineapple;toon;sad;facepalm;brain;evil eye;ufo;spiderman2;shuttle;cs go;astronaut;rocket;rainbow1;boot;gold pot;hat;leprechaun;mr. bean1;meteor;alien1;space dog;choco egg;carrot;statue;rooster;rabbit;watermelon1;eye2;arcade;power;green man;slime face;jelly blob;alien x;space hunter;thirteen;crow;black cat;mask;witch;soccer ball;keeper;soccer boot;striker;star player;chihuahua;cactus;sombrero;chilli pepper;chupa cabra;earth day;april fool;gingerbread;cupcake;boy kiss;girl kiss;cupid;tender bear;funshine bear;bright raccoon;cozy penguin;lotsa elephant;brave lion;crazy ball;sky rocket;starsandstripes;mighty;uncle sam;mummy ball;eye ball;baseball smile;hornhead;skull face;cannon ball;eagle;sunbath;watermelon;star fish;icecream face;surfer;diver;liberty;birthday sanik;birthday wojak;birthday cia;birthday sir;birthday doge;birthday troll;birthday lol;hot coffee;soda can;jelly face;french fries;burger face;tortilha;chicken leg;;tennis;gymnastic;judo fighter;swimmer;athletic;cake;leaf clover;blue;green;red;yellow;pinhata;alan;gordon;john;scott;the hood;sherbert;virgil;kayo;parrot;rascal;pirate maiden;captain skull;captain;bullseye;touche;jab;backswing;spike;flame;gamma;neila;omicron;vega;smyg;white horse;monk;water spirit;boar;kong;new basketball;bull king;inspectorgadget;richie rich;she-ra;snoopy;sylvester;tweety;popeye;transformers;terminita;sea explorer;jade dragon;golf;horse shoe;mico;monkey;ping pong;squiggly;toco;love;water drop;squirrel;acorn;maple;badger;prey;300 spartans;pine head;sea turtle;volcano;coco nuts;warrior;viper;biker;desert fox;ranger;devourer;toxic eater;ogre;scavenger;marauder;mutant;dead raider;undead;phantom;werewolf;mummy;vampire;masked;ooze;grey tiger;infernando;calavera;pumpkin;calaca;frankenstein;skeleton;poison rose;skull cactus;arachno kid;star girl;tiger man;dr. cosmos;infernando;iron knight;matjoy;n0psa;omega blast;sly;x-ray;aqua;dark matter;major eagle;colossus;ignis;terra;thanksgiving;pie slice;virginia;pilgrim;mr. pumpkin;aer;raider;faun;bread;croc;happy;hazmat;nuke;pug;berserker;champion;icy braid;jotun;viking;winter wolf;basilisk;firebird;dark wings;gryphon;magic gerbil;pixie;hobgoblin;root gnome;cosmo pirate;cyber guard;space warden;moon ship;star pilot;reindeer;penguin;polar bear;flying cork;happy soda;elf helper;santa claus;husky brawl;kempo tiger;street bull;rhino boxer;rogue bunny;bruiser goat;wicked cat;best friends;time dude;chrono ranger;time doctor;cool agent;neon bug;dynamite guy;duck target;jumper;bubblesaurus;chicken;china dragon;fire rooster;carp;dumpling;;bad boy;heartbreaker;poet;superstar;idol;rocker;virtuoso;drone;king;love arrow;choco heart;strawberry;sheriff;jade;thief;tiny jack;merry outlaw;trickster;bird mask;palm tree;samba;mountain;golden mask;icon;soloist;metal face;songsmith;diva;performer;dragon;gargoyle;gopher;blue swirl;bunny;evil master;ısland scar;sirius;tyt;behemoth;huntsman;war paint;general;giant skull;great zilla;bad clover;happy hat;horse boot;cat cauldron;excalibur;mystic bird;seal knight;air bag;cyber agent;detective;droid;funny face;gold rush;magic hat;red beard;smelly;frog thai;karate parrot;king lion;raccoon jutsu;coil;cool bunny;easter chick;wacky egg;destroyer;eyeball;storm fist;taurus;war hero;alien tree;crystal;hot taco;maracas;power badger;starfighter;crazy sombrero;primal;sabertooth;silver tusk;amber;fire face;gemini;stone tool;fallen;power girl;wacky hero;bat ball;eyepatch;jellyfish ball;mega power;sheep ball;skull ribbon;walrus ball;guy fawkes mask;rider;eclipse hunter;universal ranger;elephant ball;pig ball;slaughter;slingblade;professional;lionel messi;tıtanıc;cyber scarab;haste;mechatron;psycho driller;sonic boom;zodiac cancer;celebration hat;mr. boss;star eagle;bitter;cursed blade;funky;gladiatrix;helm;hungry;lovesick;odd;orc grunt;orc warrior;queasy;reptilian;sad2;vicious;cool;full;mischievous;sweaty;tough;wicked;crazy brain;dry face;zombie dog;oyster;voltron;dumbo;archer;mage;paladin;rogue;tıtanıc;black hole;gold coin;super car;war tank;war wings;virgo;dazzled;delighted;hercules;medusa;nerdy;pixel kong;poseidon;power fighter;rabid;raid boss;rayday;scroll;silent fox;techno kid;the maw;zombie party;ınna;insectoid;olympus ares;zap;healing potion;irma hurricane;funny;dragon griffin;dragon hydra;dragon twin;Ä±sland scar;ajdar;cloud prism;cogs;football strike;nvr shadow;agar.lol;dr. static;steam freakankh;cleopatra;egyptian cat;pharaoh;ankh;anubis;cursed blade;elder master;geisha;hades;orc grunt;shogun;skull samurai;banshee;dragon viper;metal ghoul;psycho;balrog;blanka;chun lı;dhalsım;e.honda;guıle;ken;m.bıson;ryu;sagat;vega;zangıef;bean whistler;bolt samurai;mega mecha;spinner kid;power ninja;hmm;jason;snowboarder;white owl;goofy yeti;barbarian;dire wolf;frog Kid;frost giant;giant human;ımp;jackal;night hunter;nvr shuriken;sagittarius;salamander  ;leo;spark;walking hand;warlock;wendigo;wood elf;pepsi;agario.fun;agar.fun;burly man;firespitter;genie;ringmaster;the oracle;the gaunt;the miasma;the reaper;the scorcher;alpaca;aries;bullet man;capricorn;circus grizzly;libra;mad cap;raspy elf;scorpio;soul hunter;wicked clown;zany tree;devil;fire giant;little zilla;phoenix;purple dragon;sausage;snack shark;worm skull;red dragon;spooky;gouache;pencil;splatter;cave painting;cave troll;crazy eye;nice doggy;party mode;yeti;mr. bean face;circle;coolguy;duel master;furious;steam mask;robo kid;flying saucer;infernus;shadow man;big eyes;necktie cat;tea time;burner;candlelight;crazy bolt;eye five;future art;groovy canvas;hornet;sea wizard;spike flower;alien kid;bubble fish;cyber commando;elven noble;eternal snake;pyramid eye;reaper;snow biker;triceratops;wolf sigil;logan;supertank.io;slartie;chirpy raptor;frost hand;omega;radical smile;helmet;lead;wolf paw;idea;party time;skull bow;surprised cat;unicorn;bootlegger;madjawz;skull artifact;angel;deadly piranha;heavy metal;prankster;som theorist;wacky hyena;zone;birthday blob;death mouse;egyptian plague;grumpy frog;killer mask;cool lion;dark sorceress;princess swift;tooth troll;bad pigeon;bass bomb;feather dragon;lightning;merchant bionic;silly griffin;sugardash;ashwin;baby octopus;cyber demon;fallen one;goddess aona;golden axe;grandma;guinea pig;hunter leech;metal scorpion;midnight yeti;mutant herb;old one;olympus zeus;scarecrows;spike fish;techno ninja;zula gorgan;charming;cyber psychic;diamonds;dumboon;electro jelly;electronic girl;guardian;puzzled;strange;cursed samurai;fire golem;spectral owl;araneaphyx;necro strangler;neptunus spider;sinbad;blobby boy;dracool;frankie;chillpanzee;corsair;mad fragment;tape guy;think tank;cookie mouse;ice griffin;ironfist titus;nightmare;power mask;silent nun;space ink;space warrior;dapper dog;ice crystal;planet cat;bewitched;big banjo;masked menace;monday worker;of light;walrus art;pinkie pie;good morning;good bye;virus2;agar.love;candy troll;darts of fury;dynamite;getdeadkid;ısland seer;madness;squid;abductor;aquarius;astral deer;awkward;bad santa;beat box;beetoothven;bionic ram;birthosaur;blue skull;brute prankster;bull skull;cactus flower;candy genius;captain joe;cat burglar;cog attack;color runner;cosmic horse;crazy rudolph;cuppy;cyber monk;cyber punk;cybernaut;demonic helmet;divine pearl;dragon razor;dragon slayer;eager alien;egypt scarab;evil genie;forest spirit;fox mask;game host;gnome mage;golf battle;good boy;husky;hyper coffee;jelly bear;love cat;lucky doll;mad muffin;mariachi;mechanicat;melting man;mexican skull;moon alisa;mr goose;mummy king;murder ball;mushroom face;nutcracker;pepe loco;pisces;poker ace;power glove;psycho panda;punk;red fiend;rocket deer;rogue samurai;roller bot;sandworm;shrieker;skull magician;skull swords;sleepy fox;slime beast;smooth operator;snout;snowy joe;sour candy;spogh;steam diver;sunflower;suplex;techno quack;the stranger;tiny reaper;troldir;unknown totem;vampy;voracious;war mask;warhorse;wasted mouse;watson;wicked vendetta;wide eye;wilson;wolf man;yellow streak;demolition expert;awesome pug;coconuts;cool duck;crazy dog;cyclops;head ball 2;kristoffer;leviathan;mistik;odd shroom;purple hacker;rainbow slap;skull claus;snay;zone2;battle angel;jelly diver;songbird;tlingit mask;toco bones;bunny tron;carnivorous;chip cookie;clever;electro chick;meme rage;power2;titan cthulhu;bad bone;baddie;chilled homie;dog life;omnom gator;swag royalty;x-mas;ark raider;bad pepper;coronavirus;dollhouse;kobe;sonic;sweetie".split(";"),
-                    ba = {};
+                    ba = {},
+                    lastFrame = Date.now();
+                function ib() {
+                    d.requestAnimationFrame(ib);
+
+                    var now = Date.now();
+                    lastFrame = now;
+
+                    if (!$() || Date.now() - rb < 240) {
+                        Ab(); // game render
+                    } else {
+                        console.warn("Skipping draw");
+                    }
+
+                    gc(); // UI render
+                }
+
                 $a.prototype = {
                     P: null,
                     x: 0,
@@ -1263,12 +994,14 @@
                     },
                     B: function() {
                         var a = 10;
-                        20 > this.size && (a = 0);
+                        if (Hb) { 20 > this.size && (a = 6); }
+                        else { 20 > this.size && (a = 0); }
                         this.f && (a = 30);
                         var b = this.size;
                         this.f || (b *= g);
                         b *= G;
                         this.T & 32 && (b *= .25);
+                        if (Hb) { return Math.max(Math.min(~~Math.max(b, a), 60), a); }
                         return ~~Math.max(b, a)
                     },
                     da: function() {
@@ -1327,8 +1060,11 @@
                     s: function(a) {
                         if (this.H()) {
                             ++this.S;
-                            var b = 0 < this.id && !this.f && !this.j && .4 > g;
-                            5 > this.B() && 0 < this.id && (b = !0);
+                            if (Hb) { var b = false; }
+                            else { 
+                                var b = 0 < this.id && !this.f && !this.j && .4 > g;
+                                5 > this.B() && 0 < this.id && (b = !0);
+                            }
                             if (this.L && !b)
                                 for (var c = 0; c < this.a.length; c++) this.a[c].g = this.size;
                             this.L = b;
@@ -1353,7 +1089,7 @@
                             }
                             a.closePath();
                             c = this.name.toLowerCase();
-                            !this.j && Hb && ":teams" != W ? (d = this.V, null == d ? d = null : ":" == d[0] ? (ba.hasOwnProperty(d) || (ba[d] = new Image, ba[d].src = d.slice(1)), d = 0 != ba[d].width && ba[d].complete ? ba[d] : null) : d = null, d || (-1 != Lb.indexOf(c) ? (aa.hasOwnProperty(c) || (aa[c] = new Image, aa[c].src = "\x73\x6b\x69\x6e\x73\x2f\x6c\x6f\x6c\x2f" + c + ".png"), d = 0 != aa[c].width && aa[c].complete ? aa[c] : null) : d = null)) : d = null;
+                            d = null;
                             e = d;
                             b || a.stroke();
                             a.fill();
@@ -1623,7 +1359,6 @@
                 d.closeStats = function() {
                     V = !1;
                     e("#stats").hide();
-                    mb(d.ab);
                     pa(0);
                 };
                 d.setSkipStats = function(a) {

@@ -1,7 +1,5 @@
-
 <!DOCTYPE html>
 <html>
-
 <head>
 <meta charset="utf-8">
 <title>Agario Server Client</title>
@@ -11,19 +9,13 @@
 <link href="css/metro.css" rel="stylesheet">
 <link href='https://fonts.googleapis.com/css?family=Ubuntu:700' rel='stylesheet' type='text/css'>
 <link href="css/bootstrap.min.css" rel="stylesheet">
-
 <link href="css/master.css" rel="stylesheet" type="text/css">
 <style>#helloContainer,.connecting-panel{position:absolute;top:50%;left:50%;margin-right:-50%;-webkit-transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);transform:translate(-50%,-50%);}</style>
 <script src="js/jquery.js"></script>
 <script src="js/bootstrap.min.js"></script>
- <script src="environment.js"></script>
 <script src="i18n.js"></script>
 <script src="jss/main_out.js"></script>
 <script>
-
-</script>
-<script>
-
 var dfp = null;
 var dfpBottom = null;
 var dfpStats = null;
@@ -32,7 +24,6 @@ var dfpInitial = null;
 window['aa'] = [];
 window['ab'] = [];
 window['ac'] = [];
-
 </script>
 <script>
 setInterval(
@@ -55,20 +46,6 @@ setInterval(
 <body>
 <div id="overlays" style="display:none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 200;">
 <div id="helloContainer" data-logged-in="0" data-has-account-data="0" data-party-state="0" data-results-state="0" data-gamemode="">
-<div class="side-container">
-</button>
-<div class="circle small red quests" style="display:none"><span class="outlined-text"></span></div>
-<span class="timer menu-timer"></span>
-<style type="text/css">
-<!--
-.style1 {
-	color: #FFFF00;
-	font-weight: bold;
-}
--->
-</style>
- 
-</div>
 <div id="mainPanel" class="agario-panel">
 <form role="form">
 <div class="form-group clearfix" style="display:flex; justify-content: center;">
@@ -94,15 +71,16 @@ setInterval(
 </div>
 </div>
 <div id="settings" class="checkbox" style="display:none;">
-<div style="float: left; width: 200px;">
+<div style="float: left; width: 100%">
 <div id="locationKnown"></div>
-<div id="options" style="margin: 6px; font-size: 12px;">
-<label><input type="checkbox" onChange="setSkins(!$(this).is(':checked'));"><span data-itr="option_no_skins"></span></label>
-<label><input type="checkbox" onChange="setNames(!$(this).is(':checked'));"><span data-itr="option_no_names"></span></label>
-<label><input type="checkbox" onChange="setColors($(this).is(':checked'));"><span data-itr="option_no_colors"></span></label>
-<label><input type="checkbox" onChange="setShowMass($(this).is(':checked'));"><span data-itr="option_show_mass"></span></label>
-<label><input type="checkbox" onChange="setDarkTheme($(this).is(':checked'));"><span data-itr="option_dark_theme"></span></label>
-<label><input type="checkbox" onChange="setSkipStats($(this).is(':checked'));"><span data-itr="option_skip_stats"></span></label>
+<div id="options" style="font-size: 12px; line-height: 188%; height: 81px;">
+<hr style="margin-top: 5px;" />
+<label style="margin-left: 5px;"><input type="checkbox" onChange="setJelloPhysics($(this).is(':checked'));"><span data-itr="option_jello_physics"></span></label>
+<label style="margin-left: 7px;"><input type="checkbox" onChange="setNames(!$(this).is(':checked'));"><span data-itr="option_no_names"></span></label>
+<label style="margin-left: 7px;"><input type="checkbox" onChange="setColors($(this).is(':checked'));"><span data-itr="option_no_colors"></span></label>
+<label style="margin-left: 5px;"><input type="checkbox" onChange="setShowMass($(this).is(':checked'));"><span data-itr="option_show_mass"></span></label>
+<label style="margin-left: 7px;"><input type="checkbox" onChange="setDarkTheme($(this).is(':checked'));"><span data-itr="option_dark_theme"></span></label>
+<label style="margin-left: 7px;"><input type="checkbox" onChange="setSkipStats($(this).is(':checked'));"><span data-itr="option_skip_stats"></span></label>
 </div>
 </div>
 <br clear="both"/>
@@ -123,7 +101,7 @@ setInterval(
 </a>
 </center>
 <center style="margin-top: 15px;">
-<a href="https://github.com/aydon14/Agario-Server/releases/">
+<a href="https://github.com/aydon14/Agario-Server/releases/" target="_blank">
 <button type="button" class="btn btn-download-server" data-itr="download-server"></button>
 </a>
 <hr/>
@@ -132,108 +110,45 @@ setInterval(
 <span data-itr="about_2"></span><br/>
 </span></center>
 <hr/>
-<center>
-<div id="" style="margin-bottom: 10px; width: 300px; height: 60px;">
-</div>
-</center>
 </div>
 <div id="stats" style="display: none;" class="agario-panel">
 <h2><center>Match Results</center></h2>
-<canvas id="statsGraph" width="350" height="230"></canvas>
+<canvas id="statsGraph" width="350" height="250"></canvas>
 <div id="statsPelletsContainer">
- 
 <span id="statsText" class="stats-food-eaten"></span>
 <span id="statsSubtext" data-itr="stats_food_eaten"></span></div>
 <div id="statsHighestMassContainer">
- 
 <span id="statsText" class="stats-highest-mass"></span>
 <span id="statsSubtext" data-itr="stats_highest_mass"></span></div>
 <div id="statsTimeAliveContainer">
- 
 <span id="statsText" class="stats-time-alive"></span>
 <span id="statsSubtext" data-itr="stats_time_alive"></span></div>
 <div id="statsTimeLeaderboardContainer">
- 
 <span id="statsText" class="stats-leaderboard-time"></span>
 <span id="statsSubtext" data-itr="stats_leaderboard_time"></span></div>
 <div id="statsPlayerCellsEatenContainer">
- 
 <span id="statsText" class="stats-cells-eaten"></span>
 <span id="statsSubtext" data-itr="stats_cells_eaten"></span></div>
 <div id="statsTopPositionContainer">
- 
 <span id="statsText" class="stats-top-position">?</span>
 <span id="statsSubtext" data-itr="stats_top_position"></span></div>
-<hr style="position:absolute;bottom:370px;width:100%;margin:0px;"/>
+<hr style="position:absolute;bottom:330px;width:100%;margin:0px;"/>
 <button id="statsContinue" class="btn btn-primary" data-itr="continue" onClick="closeStats();"></button>
-<hr style="position:absolute;bottom:255px;width:100%;"/>
-<div id="s300x250">
-<div id="yandex_rtb_R-A-13534410-9"></div>
+<hr style="position:absolute;bottom:238px;width:100%;"/>
+<a href="fun/index.html">
+<button type="button" class="btn btn-fun-mode" data-itr="fun-mode" style="position: absolute; left: 25px; right: 25px; width: 300px; bottom: 210px;"></button>
+</a>
+<center>
+<a href="https://github.com/aydon14/Agario-Server/releases/" target="_blank">
+<button type="button" class="btn btn-download-server" data-itr="download-server" style="position: absolute; left: 25px; right: 25px; width: 300px; bottom: 165px;"></button></button>
+</a>
+<center><span class="text-muted" style="position: absolute; left: 0px; right: 0px; width: 100%; bottom: 50px;">
+<hr/>
+<span data-itr="about_1"></span><br/>
+<span data-itr="about_2"></span><br/>
+<hr/>
+</span></center>
 </div>
-</div>
-<div class="side-container">
-<div class="agario-party">
-<div class="agario-panel agario-side-panel agario-party-0">
-<h4><center data-itr="party"></center></h4>
-<div style="margin-bottom: 12px;" data-itr="party_description"></div>
-<div class="clearfix" style="margin: 0px -10px 0px -10px;">
-<button class="btn btn-primary" style="width: 102.5px; float: left;" onClick="$('#helloContainer').attr('data-party-state', '3');createParty();" data-itr="create_party"></button>
-<button class="btn btn-primary" style="width: 102.5px; float: right;" onClick="$('#joinPartyToken').val('');$('#helloContainer').attr('data-party-state', '2');" data-itr="join_party"></button>
-</div>
-</div>
-<div class="agario-panel agario-side-panel agario-party-1">
-<h4><center data-itr="party"></center></h4>
-<div style="margin-bottom: 12px;" data-itr="create_party_instructions"></div>
-<div class="clearfix">
-<input type="text" value="??????" readonly class="partyToken form-control" style="cursor: text; width: 130px; float: left; border-radius: 4px 0px 0px 4px;"/>
-<button class="btn btn-primary copy-party-token" style="float: right; width: 60px; border-radius: 0px 4px 4px 0px;">Copy</button>
-</div>
-</div>
-<div class="agario-panel agario-side-panel agario-party-2">
-<h4><center data-itr="party"></center></h4>
-<div style="margin-bottom: 12px;" data-itr="join_party_instructions"></div>
-<input id="joinPartyToken" type="text" value="" class="form-control"/>
-<div class="clearfix" style="margin: 10px -10px 0px -10px;">
-<button class="btn btn-primary" style="width: 210px; float: right;" onClick="joinParty($('#joinPartyToken').val());" data-itr="join_party"></button>
-</div>
-</div>
-<div class="agario-panel agario-side-panel agario-party-3" style="padding: 0px; overflow: hidden; position: relative;">
-<canvas width="220" height="100" class="cell-spinner" data-size="26"></canvas>
-<div class="creating-party-text" data-itr="creating_party"></div>
-</div>
-<div class="agario-panel agario-side-panel agario-party-4" style="padding: 0px; overflow: hidden; position: relative;">
-<canvas width="220" height="100" class="cell-spinner" data-size="26"></canvas>
-<div class="creating-party-text" data-itr="joining_party"></div>
-</div>
-<div class="agario-panel agario-side-panel agario-party-5">
-<h4><center data-itr="party"></center></h4>
-<div style="margin-bottom: 12px;" data-itr="joined_party_instructions"></div>
-<div class="clearfix">
-<input type="text" value="??????" readonly class="partyToken form-control" style="cursor: text; width: 125px; float: left;"/>
-<button class="btn btn-primary copy-party-token" style="float: right; width: 60px;">Copy</button>
-</div>
-</div>
-<div class="agario-panel agario-side-panel agario-party-6">
-<h4><center data-itr="party"></center></h4>
-<div style="margin-bottom: 12px;" data-itr="party_join_error"></div>
-<div class="clearfix" style="margin: 10px -10px 0px -10px;">
-</div>
-</div>
-<div style="position: absolute; right: 10px; top: 4px;">
-<button type="button" class="close" onClick="cancelParty();">&times;</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="reklam2" style="float:left; position:fixed;"><!-- Yandex.RTB R-A-13534410-7 -->
-<div id="yandex_rtb_R-A-13534410-7"></div>
-</div>
-<div id="reklam1" style="float:right; position:fixed;"><!-- Yandex.RTB R-A-13534410-6 -->
-<div id="yandex_rtb_R-A-13534410-6"></div>
 </div>
 </div>
 </div>
@@ -246,13 +161,11 @@ setInterval(
 <canvas id="canvas" width="800" height="600"></canvas>
 <div style="font-family:'Ubuntu'">&nbsp;</div>
 <script>
-
 $(function () {
 	$('[data-itr]').each(function(){
 		var $this = $(this);
 		var itr = $this.attr('data-itr');
 		$this.html(i18n[itr] || i18n_dict['en'][itr] || itr);
-		//$this.html('');
 	});
 	
 	$('.btn-login').tooltip({
@@ -261,10 +174,7 @@ $(function () {
 		'placement': 'bottom'
 	});
 });
-
 </script>
-
-
 <script>
 var say = 0;
 var hop = 1;
@@ -276,6 +186,4 @@ setNick(temiznick);
 }
 </script>
 </body>
-
-<!-- Mirrored from agario.fun/ by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 09 Mar 2025 23:28:29 GMT -->
 </html>
