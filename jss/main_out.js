@@ -126,6 +126,7 @@
         if (!["", null].includes(e("#region").val())) {
             a = e("#region").val();
         }
+        
         if (r) {
             r.onopen = null;
             r.onmessage = null;
