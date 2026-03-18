@@ -122,7 +122,7 @@
     }
 
     function Ma(b) {
-        let a = "ws://127.0.0.1:8080";
+        let a = "ws://127.0.0.1:8888";
         if (!["", null].includes(e("#region").val())) {
             a = e("#region").val();
         }
