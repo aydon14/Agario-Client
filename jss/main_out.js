@@ -47,8 +47,6 @@
         d.requestAnimationFrame(ib);
         setInterval(ca, 40);
         qa("EU-London");
-        0 == Ja && y && M();
-        Ma(0);
         pa(0);
         hb();
         d.location.hash && 6 <= d.location.hash.length && kb(d.location.hash)
@@ -94,7 +92,7 @@
     }
 
     function qa(a) {
-        a && a != y && ("EU-London" != a && e("#region").val(a), y = d.localStorage.location = a, e(".region-message").hide(), e(".region-message." + a).show(), e(".btn-needs-server").prop("disabled", !1), Ga && M())
+        a && a != y && ("EU-London" != a && e("#region").val(a), y = d.localStorage.location = a, e(".region-message").hide(), e(".region-message." + a).show(), e(".btn-needs-server").prop("disabled", !1))
     }
 
     function pa(a) {
@@ -190,7 +188,7 @@
     function Sb() {
         ia && (ua = 3000);
         console.log("socket close");
-        setTimeout(M, ua);
+        pa(0);
     }
 
     function Rb(a) {
@@ -870,6 +868,7 @@
                     d.ga && d.ga("send", "event", "Nick", a.toLowerCase());
                     lb();
                     I = a;
+                    $() || M();
                     wb();
                     P = 0
                 };
@@ -896,7 +895,7 @@
                     lb()
                 };
                 d.setGameMode = function(a) {
-                    a != W && (":party" == W && e("#helloContainer").attr("data-party-state", "0"), ga(a), ":party" != a && M())
+                    a != W && (":party" == W && e("#helloContainer").attr("data-party-state", "0"), ga(a))
                 };
                 d.setAcid = function(a) {
                     Ya = a
