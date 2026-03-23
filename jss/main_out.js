@@ -997,6 +997,10 @@
                         if (Hb) { 20 > this.size && (a = 6); }
                         else { 20 > this.size && (a = 0); }
                         this.f && (a = 30);
+                        if (this.f) {
+                            var c = ~~(2 * Math.PI * this.size / 12);
+                            return Math.max(Math.min(c, 240), a)
+                        }
                         var b = this.size;
                         this.f || (b *= g);
                         b *= G;
