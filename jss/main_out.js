@@ -111,7 +111,7 @@
 
     function ob() {
         var a = ++Ja;
-        if (W == "") W = "ws://127.0.0.1:8888";
+        if (W == "") W = "ws://127.0.0.1:8080";
         a == Ja && Ma(0);
     }
 
@@ -120,7 +120,7 @@
     }
 
     function Ma(b) {
-        let a = "ws://127.0.0.1:8888";
+        let a = "ws://127.0.0.1:8080";
         if (!["", null].includes(e("#region").val())) {
             a = e("#region").val();
         }
