@@ -4,15 +4,12 @@
 <meta charset="utf-8">
 <title>Agario Server Client</title>
 <link rel="canonical" href="index.html"/>
-<link id="favicon" rel="icon" type="image/png" href="favicon-32x32.png"/>
-<link rel="icon" href="favicon.ico" type="image/x-icon">
+<link id="favicon" rel="icon" href="favicon.ico" type="image/x-icon">
 <link href="css/metro.css" rel="stylesheet">
-<link href='https://fonts.googleapis.com/css?family=Ubuntu:700' rel='stylesheet' type='text/css'>
 <link href="css/bootstrap.min.css" rel="stylesheet">
 <link href="css/master.css" rel="stylesheet" type="text/css">
 <style>#helloContainer,.connecting-panel{position:absolute;top:50%;left:50%;margin-right:-50%;-webkit-transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);transform:translate(-50%,-50%);}</style>
 <script src="js/jquery.js"></script>
-<script src="js/bootstrap.min.js"></script>
 <script src="i18n.js"></script>
 <script src="jss/main_out.js"></script>
 <script>
@@ -62,12 +59,10 @@ setInterval(
 <input id="region" class="form-control" placeholder="ws://127.0.0.1:8080" style="width:100%">
 </div>
 <div class="form-group" id="agario-main-buttons">
-<div class="row">
+<div class="row" style="display: flex; align-items: stretch; gap: 6px;">
 <button type="button" onClick="$('#settings, #instructions').toggle();return false;" class="btn btn-info btn-settings"><i class="glyphicon glyphicon-cog"></i></button>
-<button disabled type="submit" onClick="setNick(document.getElementById('nick').value); return false;" class="btn btn-play btn-primary btn-needs-server" data-itr="play"></button>
-<button type="button" onClick="rY();" id="btnPlay" class="btn btn-play-guest btn-success btn-needs-server" data-itr="Play"></button>
-</div>
-<div id="socialLoginContainer" style="display:none;">
+<button disabled type="submit" onClick="setNick(document.getElementById('nick').value); return false;" class="btn btn-play-guest btn-success btn-needs-server" data-itr="play" style="flex: 1; height: 35px;"></button>
+<button disabled type="button" onClick="spectate(); return false;" class="btn btn-warning btn-needs-server" data-itr="spectate" style="flex: 1; height: 35px; font-weight: 700;"></button>
 </div>
 </div>
 <div id="settings" class="checkbox" style="display:none;">
@@ -140,7 +135,7 @@ setInterval(
 </a>
 <center>
 <a href="https://github.com/aydon14/Agario-Server/releases/" target="_blank">
-<button type="button" class="btn btn-download-server" data-itr="download-server" style="position: absolute; left: 25px; right: 25px; width: 300px; bottom: 165px;"></button></button>
+<button type="button" class="btn btn-download-server" data-itr="download-server" style="position: absolute; left: 25px; right: 25px; width: 300px; bottom: 165px;"></button>
 </a>
 <center><span class="text-muted" style="position: absolute; left: 0px; right: 0px; width: 100%; bottom: 50px;">
 <hr/>
@@ -159,19 +154,13 @@ setInterval(
 </div>
 </div>
 <canvas id="canvas" width="800" height="600"></canvas>
-<div style="font-family:'Ubuntu'">&nbsp;</div>
+<div style="font-family:'ServerFont'">&nbsp;</div>
 <script>
 $(function () {
 	$('[data-itr]').each(function(){
 		var $this = $(this);
 		var itr = $this.attr('data-itr');
 		$this.html(i18n[itr] || i18n_dict['en'][itr] || itr);
-	});
-	
-	$('.btn-login').tooltip({
-		'html': true,
-		'title': i18n['login_tooltip'],
-		'placement': 'bottom'
 	});
 });
 </script>

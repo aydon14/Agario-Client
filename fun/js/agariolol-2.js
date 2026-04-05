@@ -133,12 +133,8 @@ var cg = {
      $(this.canvas).mousemove(mm)
 
      $(this.canvas).click(function(e) {
-       if(cg.inZBounds(e.clientX,e.clientY)) {
-         window.open('http://agar.lol','_blank')
-       } else {
-         $(cg.canvas).unbind('click')
-         cg.start()
-       }
+        $(cg.canvas).unbind('click')
+        cg.start()
      })
 
      this.tick()
@@ -210,9 +206,6 @@ var cg = {
      this.ctx.font = '20pt Verdana'
      w = this.ctx.measureText(t = '(Click to begin)').width
      this.ctx.fillText(t, (this.config.width - w)/2, cg.config.height / 2)
-
-     w = this.ctx.measureText(t = 'Agar.lol').width
-     this.ctx.fillText(t, (this.config.width - w)/2, cg.config.height / 2 + 180)
 
      this.zHeight = 81
      this.zWidth = 296

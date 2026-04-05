@@ -1,4 +1,11 @@
 @charset "UTF-8";
+@font-face {
+    font-family: "ServerFont";
+    src: url("../fonts/server_font.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
 html {
     font-family: sans-serif;
     -webkit-text-size-adjust: 100%;
@@ -10131,7 +10138,6 @@ form {
 }
 .btn-login-play,
 .btn-play-guest {
-    margin-left: 5px;
     width: 275px;
 }
 #agario-main-buttons {
@@ -10329,7 +10335,7 @@ form {
     bottom: 0;
     left: 0;
     right: 0;
-    font-family: Ubuntu, sans-serif;
+    font-family: ServerFont, sans-serif;
 }
 #agario-results-table {
     width: 100%;
@@ -10366,7 +10372,7 @@ form {
     line-height: 55px;
     font-size: 12pt;
     text-shadow: 0 0 3px #000, -1px 0 0 #000, 1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000;
-    font-family: Ubuntu, sans-serif;
+    font-family: ServerFont, sans-serif;
 }
 .tooltip-inner {
     max-width: 300px;
@@ -10478,7 +10484,7 @@ form {
     bottom: 0;
     left: 0;
     right: 0;
-    font-family: Ubuntu, sans-serif;
+    font-family: ServerFont, sans-serif;
 }
 .plus-text {
     text-shadow: none;

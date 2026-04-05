@@ -1,68 +1,107 @@
 (function(d, e) {
-    function Mb() {
+    function initializeClient() {
         Ga = !0;
         L = Ha = document.getElementById("canvas");
         f = L.getContext("2d");
         L.onmousedown = function(a) {
+            if (spectateInputEnabled && 0 == playerCells.length) return;
             if (fb) {
-                var b = a.clientX - (5 + h / 5 / 2),
-                    c = a.clientY - (5 + h / 5 / 2);
-                if (Math.sqrt(b * b + c * c) <= h / 5 / 2) {
-                    ca();
-                    H(17);
+                var b = a.clientX - (5 + viewportWidth / 5 / 2),
+                    c = a.clientY - (5 + viewportWidth / 5 / 2);
+                if (Math.sqrt(b * b + c * c) <= viewportWidth / 5 / 2) {
+                    sendMousePosition();
+                    sendActionOpcode(17);
                     return
                 }
             }
-            na = 1 * a.clientX;
-            oa = 1 * a.clientY;
-            Ia();
-            ca()
+            mouseScreenX = 1 * a.clientX;
+            mouseScreenY = 1 * a.clientY;
+            updateMouseWorldTarget();
+            sendMousePosition()
         };
         L.onmousemove = function(a) {
-            na = 1 * a.clientX;
-            oa = 1 * a.clientY;
-            Ia()
+            if (spectateInputEnabled && 0 == playerCells.length) return;
+            mouseScreenX = 1 * a.clientX;
+            mouseScreenY = 1 * a.clientY;
+            updateMouseWorldTarget()
         };
         L.onmouseup = function() {};
-        /firefox/i.test(navigator.userAgent) ? document.addEventListener("DOMMouseScroll", gb, !1) : document.body.onmousewheel = gb;
+        /firefox/i.test(navigator.userAgent) ? document.addEventListener("DOMMouseScroll", handleZoomScroll, !1) : document.body.onmousewheel = handleZoomScroll;
         var a = !1,
             b = !1,
             c = !1;
         d.onkeydown = function(n) {
-            32 != n.keyCode || a || (ca(), H(17), a = !0);
-            81 != n.keyCode || b || (H(18), b = !0);
-            87 != n.keyCode || c || (ca(), H(21), c = !0);
-            27 == n.keyCode && pa(300)
+            32 != n.keyCode || a || (sendMousePosition(), sendActionOpcode(17), a = !0);
+            81 != n.keyCode || b || (sendActionOpcode(18), b = !0);
+            if (87 == n.keyCode) {
+                spectateMoveUp = !0;
+                spectateInputEnabled && 0 == playerCells.length ? sendMousePosition() : c || (sendMousePosition(), sendActionOpcode(21), c = !0)
+            }
+            65 == n.keyCode && (spectateMoveLeft = !0, spectateInputEnabled && 0 == playerCells.length && sendMousePosition());
+            83 == n.keyCode && (spectateMoveDown = !0, spectateInputEnabled && 0 == playerCells.length && sendMousePosition());
+            68 == n.keyCode && (spectateMoveRight = !0, spectateInputEnabled && 0 == playerCells.length && sendMousePosition());
+            27 == n.keyCode && showMainMenu(300)
         };
         d.onkeyup = function(n) {
             32 == n.keyCode && (a = !1);
-            87 == n.keyCode && (c = !1);
-            81 == n.keyCode && b && (H(19), b = !1)
+            87 == n.keyCode && (spectateMoveUp = !1, c = !1);
+            65 == n.keyCode && (spectateMoveLeft = !1);
+            83 == n.keyCode && (spectateMoveDown = !1);
+            68 == n.keyCode && (spectateMoveRight = !1);
+            81 == n.keyCode && b && (sendActionOpcode(19), b = !1)
         };
         d.onblur = function() {
-            H(19);
+            sendActionOpcode(19);
+            spectateMoveUp = !1;
+            spectateMoveLeft = !1;
+            spectateMoveDown = !1;
+            spectateMoveRight = !1;
             c = b = a = !1
         };
-        d.onresize = hb;
-        d.requestAnimationFrame(ib);
-        setInterval(ca, 40);
-        qa("EU-London");
-        pa(0);
-        hb();
-        d.location.hash && 6 <= d.location.hash.length && kb(d.location.hash)
+        d.onresize = handleWindowResize;
+        d.requestAnimationFrame(mainAnimationLoop);
+        setInterval(sendMousePosition, 20);
+        setRegionSelection("EU-London");
+        showMainMenu(0);
+        handleWindowResize();
+        d.location.hash && 6 <= d.location.hash.length && joinPartyByHash(d.location.hash)
     }
 
-    function gb(a) {
-        N *= Math.pow(.9, a.wheelDelta / -120 || a.detail || 0);
+    function handleZoomScroll(a) {
+        var b = a.wheelDelta / -120 || a.detail || 0;
+        if (spectateInputEnabled && 0 == playerCells.length && isSocketOpen() && 0 != b) {
+            for (var c = Math.max(1, Math.round(Math.abs(b))), n = 0; n < c; n++) sendActionOpcode(0 > b ? 22 : 23);
+            a.preventDefault && a.preventDefault();
+            return !1
+        }
+        // Apply exponential zoom steps so wheel input feels consistent across devices.
+        N *= Math.pow(.9, b);
         1 > N && (N = 1);
         N > 4 / g && (N = 4 / g)
     }
 
-    function Nb() {
+    function applySpectateKeyboardTarget() {
+        var a = (spectateMoveRight ? 1 : 0) - (spectateMoveLeft ? 1 : 0),
+            b = (spectateMoveDown ? 1 : 0) - (spectateMoveUp ? 1 : 0);
+        if (0 == a && 0 == b) {
+            mouseWorldTargetX = cameraX;
+            mouseWorldTargetY = cameraY;
+            return !1
+        }
+        var c = Math.sqrt(a * a + b * b);
+        a /= c;
+        b /= c;
+        c = 1E4 / Math.max(g, .01);
+        mouseWorldTargetX = cameraX + a * c;
+        mouseWorldTargetY = cameraY + b * c;
+        return !0
+    }
+
+    function rebuildSpatialIndex() {
         if (.4 > g) da = null;
         else {
-            for (var a = Number.POSITIVE_INFINITY, b = Number.POSITIVE_INFINITY, c = Number.NEGATIVE_INFINITY, n = Number.NEGATIVE_INFINITY, d = 0; d < v.length; d++) {
-                var e = v[d];
+            for (var a = Number.POSITIVE_INFINITY, b = Number.POSITIVE_INFINITY, c = Number.NEGATIVE_INFINITY, n = Number.NEGATIVE_INFINITY, d = 0; d < allCells.length; d++) {
+                var e = allCells[d];
                 !e.H() || e.L || 20 >= e.size * g || (a = Math.min(e.x - e.size, a), b = Math.min(e.y - e.size, b), c = Math.max(e.x + e.size, c), n = Math.max(e.y + e.size, n))
             }
             da = Ob.X({
@@ -73,66 +112,66 @@
                 fa: 2,
                 ha: 4
             });
-            for (d = 0; d < v.length; d++)
-                if (e = v[d], e.H() && !(20 >= e.size * g))
-                    for (a = 0; a < e.a.length; ++a) b = e.a[a].x, c = e.a[a].y, b < t - h / 2 / g || c < u - q / 2 / g || b > t + h / 2 / g || c > u + q / 2 / g || da.Y(e.a[a])
+            for (d = 0; d < allCells.length; d++)
+                if (e = allCells[d], e.H() && !(20 >= e.size * g))
+                    for (a = 0; a < e.a.length; ++a) b = e.a[a].x, c = e.a[a].y, b < cameraX - viewportWidth / 2 / g || c < cameraY - viewportHeight / 2 / g || b > cameraX + viewportWidth / 2 / g || c > cameraY + viewportHeight / 2 / g || da.Y(e.a[a])
         }
     }
 
-    function Ia() {
-        ra = (na - h / 2) / g + t;
-        sa = (oa - q / 2) / g + u
+    function updateMouseWorldTarget() {
+        mouseWorldTargetX = (mouseScreenX - viewportWidth / 2) / g + cameraX;
+        mouseWorldTargetY = (mouseScreenY - viewportHeight / 2) / g + cameraY
     }
 
-    function lb() {
+    function hideMainPanels() {
         e("#overlays").hide();
         e("#stats").hide();
         e("#mainPanel").hide();
         V = fa = !1;
     }
 
-    function qa(a) {
+    function setRegionSelection(a) {
         a && a != y && ("EU-London" != a && e("#region").val(a), y = d.localStorage.location = a, e(".region-message").hide(), e(".region-message." + a).show(), e(".btn-needs-server").prop("disabled", !1))
     }
 
-    function pa(a) {
-        fa || V || (I = null, Ka || null, Ka = !1, 1E3 > a && (s = 1), fa = !0, e("#mainPanel").show(), 0 < a ? e("#overlays").fadeIn(a) : e("#overlays").show())
+    function showMainMenu(a) {
+        fa || V || (I = null, isFirstMenuOpen || null, isFirstMenuOpen = !1, 1E3 > a && (s = 1), fa = !0, e("#mainPanel").show(), 0 < a ? e("#overlays").fadeIn(a) : e("#overlays").show())
     }
 
-    function ga(a) {
+    function setGameModeUiState(a) {
         e("#helloContainer").attr("data-gamemode", a);
         W = a;
         e("#gamemode").val(a)
     }
 
-    function ha(a) {
+    function translateKey(a) {
         return d.i18n[a] || d.i18n_dict.en[a] || a
     }
 
-    function ob() {
-        var a = ++Ja;
+    function startConnectionFlow() {
+        var a = ++connectionAttemptId;
         if (W == "") W = "ws://127.0.0.1:8080";
-        a == Ja && Ma(0);
+        a == connectionAttemptId && connectToServer(0);
     }
 
-    function M() {
-        Ga && y && (e("#connecting").show(), ob())
+    function connectIfReady() {
+        Ga && y && (e("#connecting").show(), startConnectionFlow())
     }
 
-    function Ma(b) {
+    function connectToServer(b) {
+        b = "string" == typeof b ? b : "";
         let a = "ws://127.0.0.1:8080";
         if (!["", null].includes(e("#region").val())) {
             a = e("#region").val();
         }
-        
-        if (r) {
-            r.onopen = null;
-            r.onmessage = null;
-            r.onclose = null;
+        if (gameSocket) {
+            gameSocket.onopen = null;
+            gameSocket.onmessage = null;
+            gameSocket.onclose = null;
             try {
-                r.close()
+                gameSocket.close()
             } catch (c) {}
-            r = null
+            gameSocket = null
         }
         Na.ip && (a = "ws://" + Na.ip);
         if (null != O) {
@@ -141,62 +180,61 @@
                 n(b)
             }
         }
-        if (Qb) {}
-        z = [];
-        l = [];
-        J = {};
-        v = [];
-        X = [];
+        playerCellIds = [];
+        playerCells = [];
+        cellsById = {};
+        allCells = [];
+        fadingCells = [];
         w = [];
         A = B = null;
+        resetTeamMassGraphHistory();
         P = 0;
         ia = !1;
         console.log("Connecting to " + a);
-        r = new WebSocket(a);
-        r.binaryType = "arraybuffer";
-        r.onopen = function() {
+        gameSocket = new WebSocket(a);
+        gameSocket.binaryType = "arraybuffer";
+        gameSocket.onopen = function() {
             var a;
             console.log("socket open");
-            a = Q(5);
+            a = createPacketView(5);
             a.setUint8(0, 254);
             a.setUint32(1, 5, !0);
-            R(a);
-            a = Q(5);
+            sendPacket(a);
+            a = createPacketView(5);
             a.setUint8(0, 255);
             a.setUint32(1, 154669603, !0);
-            R(a);
-            a = Q(1 + b.length);
+            sendPacket(a);
+            a = createPacketView(1 + b.length);
             a.setUint8(0, 80);
             for (var c = 0; c < b.length; ++c) a.setUint8(c + 1, b.charCodeAt(c));
-            R(a);
-            pb()
+            sendPacket(a);
+            sendAuthTokenIfAvailable()
         };
-        r.onmessage = Rb;
-        r.onclose = Sb;
-        r.onerror = function() {
+        gameSocket.onmessage = handleSocketMessageEvent;
+        gameSocket.onclose = handleSocketClosed;
+        gameSocket.onerror = function() {
             console.log("socket error")
         }
     }
 
-    function Q(a) {
+    function createPacketView(a) {
         return new DataView(new ArrayBuffer(a))
     }
 
-    function R(a) {
-        r.send(a.buffer)
+    function sendPacket(a) {
+        gameSocket.send(a.buffer)
     }
 
-    function Sb() {
-        ia && (ua = 3000);
+    function handleSocketClosed() {
         console.log("socket close");
-        pa(0);
+        showMainMenu(0);
     }
 
-    function Rb(a) {
-        Tb(new DataView(a.data))
+    function handleSocketMessageEvent(a) {
+        parseServerPacket(new DataView(a.data))
     }
 
-    function Tb(a) {
+    function parseServerPacket(a) {
         function b() {
             for (var b = "";;) {
                 var d = a.getUint16(c, !0);
@@ -210,19 +248,21 @@
         240 == a.getUint8(c) && (c += 5);
         switch (a.getUint8(c++)) {
             case 16:
-                Ub(a, c);
+                handleWorldUpdatePacket(a, c);
                 break;
             case 17:
-                ja = a.getFloat32(c, !0);
+                lastCameraTargetX = a.getFloat32(c, !0);
                 c += 4;
-                ka = a.getFloat32(c, !0);
+                lastCameraTargetY = a.getFloat32(c, !0);
                 c += 4;
-                la = a.getFloat32(c, !0);
+                lastTargetScale = a.getFloat32(c, !0);
                 c += 4;
                 break;
             case 20:
-                l = [];
-                z = [];
+                playerCells = [];
+                playerCellIds = [];
+                resetTeamMassGraphHistory();
+                rebuildLeaderboardCanvas();
                 break;
             case 21:
                 Oa = a.getInt16(c, !0);
@@ -232,7 +272,12 @@
                 Qa || (Qa = !0, va = Oa, wa = Pa);
                 break;
             case 32:
-                z.push(a.getUint32(c, !0));
+                spectateInputEnabled = !1;
+                spectateMoveUp = !1;
+                spectateMoveLeft = !1;
+                spectateMoveDown = !1;
+                spectateMoveRight = !1;
+                playerCellIds.push(a.getUint32(c, !0));
                 c += 4;
                 break;
             case 49:
@@ -248,14 +293,15 @@
                         name: b()
                     })
                 }
-                qb();
+                rebuildLeaderboardCanvas();
                 break;
             case 50:
                 B = [];
                 n = a.getUint32(c, !0);
                 c += 4;
                 for (d = 0; d < n; ++d) B.push(a.getFloat32(c, !0)), c += 4;
-                qb();
+                sampleTeamMassGraphHistory();
+                rebuildLeaderboardCanvas();
                 break;
             case 64:
                 xa = a.getFloat64(c, !0);
@@ -266,10 +312,10 @@
                 c += 8;
                 Aa = a.getFloat64(c, !0);
                 c += 8;
-                ja = (za + xa) / 2;
-                ka = (Aa + ya) / 2;
-                la = 1;
-                0 == l.length && (t = ja, u = ka, g = la);
+                lastCameraTargetX = (za + xa) / 2;
+                lastCameraTargetY = (Aa + ya) / 2;
+                lastTargetScale = 1;
+                0 == playerCells.length && (cameraX = lastCameraTargetX, cameraY = lastCameraTargetY, g = lastTargetScale);
                 break;
             case 81:
                 var f = a.getUint32(c, !0),
@@ -279,16 +325,21 @@
                     h = a.getUint32(c, !0),
                     c = c + 4;
                 setTimeout(function() {
-                    Y({
+                    updateProfileProgress({
                         d: f,
                         e: k,
                         c: h
                     })
                 }, 1200)
+                break;
+            case 90:
+                resetTeamMassGraphHistory();
+                rebuildLeaderboardCanvas();
+                break;
         }
     }
 
-    function Ub(a, b) {
+    function handleWorldUpdatePacket(a, b) {
         function c() {
             for (var c = "";;) {
                 var d = a.getUint16(b, !0);
@@ -307,16 +358,16 @@
             }
             return c
         }
-        rb = F = Date.now();
-        ia || (ia = !0, Vb());
+        rb = currentFrameTimeMs = Date.now();
+        ia || (ia = !0, onConnectionEstablished());
         Ra = !1;
         var p = a.getUint16(b, !0);
         b += 2;
         for (var f = 0; f < p; ++f) {
-            var C = J[a.getUint32(b, !0)],
-                k = J[a.getUint32(b + 4, !0)];
+            var C = cellsById[a.getUint32(b, !0)],
+                k = cellsById[a.getUint32(b + 4, !0)];
             b += 8;
-            C && k && (k.R(), k.o = k.x, k.p = k.y, k.n = k.size, k.C = C.x, k.D = C.y, k.m = k.size, k.K = F, Wb(C, k))
+            C && k && (k.R(), k.o = k.x, k.p = k.y, k.n = k.size, k.C = C.x, k.D = C.y, k.m = k.size, k.K = currentFrameTimeMs, trackCellEatStats(C, k))
         }
         for (f = 0;;) {
             p = a.getUint32(b, !0);
@@ -332,7 +383,7 @@
             var m = a.getUint8(b++),
                 K = a.getUint8(b++),
                 S = a.getUint8(b++),
-                K = Xb(m << 16 | K << 8 | S),
+                K = rgbIntToHex(m << 16 | K << 8 | S),
                 S = a.getUint8(b++),
                 h = !!(S & 1),
                 q = !!(S & 16),
@@ -341,126 +392,153 @@
             S & 4 && (r = n());
             var s = c(),
                 m = null;
-            J.hasOwnProperty(p) ? (m = J[p], m.J(), m.o = m.x, m.p = m.y, m.n = m.size, m.color = K) : (m = new Z(p, C, k, g, K, s), v.push(m), J[p] = m, m.ia = C, m.ja = k);
+            cellsById.hasOwnProperty(p) ? (m = cellsById[p], m.J(), m.o = m.x, m.p = m.y, m.n = m.size, m.color = K) : (m = new CellEntity(p, C, k, g, K, s), allCells.push(m), cellsById[p] = m, m.ia = C, m.ja = k);
             m.f = h;
             m.j = q;
             m.C = C;
             m.D = k;
             m.m = g;
-            m.K = F;
+            m.K = currentFrameTimeMs;
             m.T = S;
             r && (m.V = r);
 
-            s && m.t(s); - 1 != z.indexOf(p) && -1 == l.indexOf(m) && (l.push(m), 1 == l.length && (t = m.x, u = m.y, sb(), document.getElementById("overlays").style.display = "none", x = [], Sa = 0, Ta = l[0].color, Ua = !0, tb = Date.now(), T = Va = Wa = 0))
+            s && m.t(s); -1 != playerCellIds.indexOf(p) && -1 == playerCells.indexOf(m) && (playerCells.push(m), 1 == playerCells.length && (cameraX = m.x, cameraY = m.y, updateLiveFavicon(), document.getElementById("overlays").style.display = "none", x = [], Sa = 0, Ta = playerCells[0].color, Ua = !0, tb = Date.now(), T = Va = Wa = 0))
         }
         C = a.getUint32(b, !0);
         b += 4;
-        for (f = 0; f < C; f++) p = a.getUint32(b, !0), b += 4, m = J[p], null != m && m.R();
-        Ra && 0 == l.length && (ub = Date.now(), Ua = !1, fa || V || (vb ? (Yb(), V = !0, e("#overlays").fadeIn(3E3), e("#stats").show()) : pa(3E3)))
+        for (f = 0; f < C; f++) p = a.getUint32(b, !0), b += 4, m = cellsById[p], null != m && m.R();
+        if (0 < C && null != B && 0 == playerCells.length && 0 < lastKnownTeamMassTotal) {
+            for (var L = computeTeamMassTotals(B.length), M = 0, R = 0; R < L.length; ++R) M += L[R];
+            0 >= M && (resetTeamMassGraphHistory(), rebuildLeaderboardCanvas());
+            lastKnownTeamMassTotal = M
+        }
+        Ra && 0 == playerCells.length && (ub = Date.now(), Ua = !1, fa || V || (vb ? (renderStatsPanel(), V = !0, e("#overlays").fadeIn(3E3), e("#stats").show()) : showMainMenu(3E3)))
     }
 
-    function Vb() {
+    function onConnectionEstablished() {
         e("#connecting").hide();
-        wb();
+        sendPendingNick();
+        pendingSpectate && (sendActionOpcode(1), pendingSpectate = !1);
         O && (O(), O = null);
-        null != Xa && clearTimeout(Xa);
-        Xa = setTimeout(function() {
-            d.ga && (++xb, d.ga("set", "dimension2", xb))
-        }, 1E4)
+        null != Xa && clearTimeout(Xa)
     }
 
-    function ca() {
-        if ($()) {
-            var a = na - h / 2,
-                b = oa - q / 2;
-            64 > a * a + b * b || .01 > Math.abs(yb - ra) && .01 > Math.abs(zb - sa) || (yb = ra, zb = sa, a = Q(13), a.setUint8(0, 16), a.setInt32(1, ra, !0), a.setInt32(5, sa, !0), a.setUint32(9, 0, !0), R(a))
+    function sendMousePosition() {
+        if (isSocketOpen()) {
+            spectateInputEnabled && 0 == playerCells.length && applySpectateKeyboardTarget();
+            var a = mouseScreenX - viewportWidth / 2,
+                b = mouseScreenY - viewportHeight / 2;
+            64 > a * a + b * b || .01 > Math.abs(yb - mouseWorldTargetX) && .01 > Math.abs(zb - mouseWorldTargetY) || (yb = mouseWorldTargetX, zb = mouseWorldTargetY, a = createPacketView(13), a.setUint8(0, 16), a.setInt32(1, mouseWorldTargetX, !0), a.setInt32(5, mouseWorldTargetY, !0), a.setUint32(9, 0, !0), sendPacket(a))
         }
     }
 
-    function wb() {
-        if ($() && ia && null != I) {
-            var a = Q(1 + 2 * I.length);
+    function sendPendingNick() {
+        if (isSocketOpen() && ia && null != I) {
+            var a = createPacketView(1 + 2 * I.length);
             a.setUint8(0, 0);
             for (var b = 0; b < I.length; ++b) a.setUint16(1 + 2 * b, I.charCodeAt(b), !0);
-            R(a);
+            sendPacket(a);
             I = null
         }
     }
 
-    function $() {
-        return null != r && r.readyState == r.OPEN
+    function isSocketOpen() {
+        return null != gameSocket && gameSocket.readyState == gameSocket.OPEN
     }
 
-    function H(a) {
-        if ($()) {
-            var b = Q(1);
+    function sendActionOpcode(a) {
+        if (isSocketOpen()) {
+            var b = createPacketView(1);
             b.setUint8(0, a);
-            R(b)
+            sendPacket(b)
         }
     }
 
-    function pb() {
-        if ($() && null != D) {
-            var a = Q(1 + D.length);
+    function sendAuthTokenIfAvailable() {
+        if (isSocketOpen() && null != D) {
+            var a = createPacketView(1 + D.length);
             a.setUint8(0, 81);
             for (var b = 0; b < D.length; ++b) a.setUint8(b + 1, D.charCodeAt(b));
-            R(a)
+            sendPacket(a)
         }
     }
 
-    function hb() {
-        h = 1 * d.innerWidth;
-        q = 1 * d.innerHeight;
-        Ha.width = L.width = h;
-        Ha.height = L.height = q;
+    function handleWindowResize() {
+        viewportWidth = 1 * d.innerWidth;
+        viewportHeight = 1 * d.innerHeight;
+        Ha.width = L.width = viewportWidth;
+        Ha.height = L.height = viewportHeight;
         var a = e("#helloContainer");
         a.css("transform", "none");
         var b = a.height(),
             c = d.innerHeight;
         b > c / 1.1 ? a.css("transform", "translate(-50%, -50%) scale(" + c / b / 1.1 + ")") : a.css("transform", "translate(-50%, -50%)");
-        Ab()
+        renderGameFrame()
     }
 
-    function Bb() {
+    function computeViewportScale() {
         var a;
-        a = 1 * Math.max(q / 1080, h / 1920);
+        a = 1 * Math.max(viewportHeight / 1080, viewportWidth / 1920);
         return a *= N
     }
 
-    function Zb() {
-        if (0 != l.length) {
-            for (var a = 0, b = 0; b < l.length; b++) a += l[b].size;
-            a = Math.pow(Math.min(64 / a, 1), .4) * Bb();
+    function updateCameraScale() {
+        if (0 != playerCells.length) {
+            for (var a = 0, b = 0; b < playerCells.length; b++) a += playerCells[b].size;
+            a = Math.pow(Math.min(64 / a, 1), .4) * computeViewportScale();
             g = (9 * g + a) / 10
         }
     }
 
-    function Ab() {
+    function updateSpectateCameraStep() {
+        var a = lastCameraTargetX - cameraX,
+            b = lastCameraTargetY - cameraY,
+            c = Math.sqrt(a * a + b * b);
+        if (.01 >= c) {
+            cameraX = lastCameraTargetX;
+            cameraY = lastCameraTargetY;
+            return
+        }
+        var d = spectateMoveUp || spectateMoveLeft || spectateMoveDown || spectateMoveRight,
+            e = 1.4 / Math.max(g, .01),
+            f = d ? .45 : .28,
+            h = d ? 24 / Math.max(g, .01) : 18 / Math.max(g, .01),
+            k = c * f;
+        c <= e ? (cameraX = lastCameraTargetX, cameraY = lastCameraTargetY) : (k = Math.min(k, h), cameraX += a / c * k, cameraY += b / c * k)
+    }
+
+    function renderGameFrame() {
         var a, b = Date.now();
-        ++$b;
-        F = b;
-        if (0 < l.length) {
-            Zb();
-            for (var c = a = 0, d = 0; d < l.length; d++) l[d].J(), a += l[d].x / l.length, c += l[d].y / l.length;
-            ja = a;
-            ka = c;
-            la = g;
-            t = (t + a) / 2;
-            u = (u + c) / 2
-        } else t = (29 * t + ja) / 30, u = (29 * u + ka) / 30, g = (9 * g + la * Bb()) / 10;
-        Nb();
-        Ia();
-        Ya || f.clearRect(0, 0, h, q);
-        Ya ? (f.fillStyle = Ba ? "#111111" : "#F2FBFF", f.globalAlpha = .05, f.fillRect(0, 0, h, q), f.globalAlpha = 1) : ac();
-        v.sort(function(a, b) {
+        currentFrameTimeMs = b;
+        if (0 < playerCells.length) {
+            updateCameraScale();
+            for (var c = a = 0, d = 0; d < playerCells.length; d++) playerCells[d].J(), a += playerCells[d].x / playerCells.length, c += playerCells[d].y / playerCells.length;
+            lastCameraTargetX = a;
+            lastCameraTargetY = c;
+            lastTargetScale = g;
+            cameraX = (cameraX + a) / 2;
+            cameraY = (cameraY + c) / 2
+        // Spectate mode uses step-based camera movement for sharper tracking.
+        } else {
+            var c = lastTargetScale * computeViewportScale();
+            if (spectateInputEnabled) g = (7 * g + c) / 8, updateSpectateCameraStep();
+            else cameraX = (29 * cameraX + lastCameraTargetX) / 30, cameraY = (29 * cameraY + lastCameraTargetY) / 30, g = (9 * g + c) / 10
+        }
+        rebuildSpatialIndex();
+        updateMouseWorldTarget();
+        Ya || f.clearRect(0, 0, viewportWidth, viewportHeight);
+        Ya ? (f.fillStyle = Ba ? "#111111" : "#F2FBFF", f.globalAlpha = .05, f.fillRect(0, 0, viewportWidth, viewportHeight), f.globalAlpha = 1) : drawBackgroundGrid();
+        allCells.sort(function(a, b) {
             return a.size == b.size ? a.id - b.id : a.size - b.size
         });
+        rebuildSpectateRenderAggregates();
         f.save();
-        f.translate(h / 2, q / 2);
+        f.translate(viewportWidth / 2, viewportHeight / 2);
         f.scale(g, g);
-        f.translate(-t, -u);
-        for (d = 0; d < X.length; d++) X[d].s(f);
-        for (d = 0; d < v.length; d++) v[d].s(f);
+        f.translate(-cameraX, -cameraY);
+        drawMapBorder();
+        for (d = 0; d < fadingCells.length; d++) fadingCells[d].s(f);
+        for (d = 0; d < allCells.length; d++) allCells[d].s(f);
         if (Qa) {
             va = (3 * va + Oa) / 4;
             wa = (3 * wa + Pa) / 4;
@@ -471,57 +549,161 @@
             f.lineJoin = "round";
             f.globalAlpha = .5;
             f.beginPath();
-            for (d = 0; d < l.length; d++) f.moveTo(l[d].x, l[d].y), f.lineTo(va, wa);
+            for (d = 0; d < playerCells.length; d++) f.moveTo(playerCells[d].x, playerCells[d].y), f.lineTo(va, wa);
             f.stroke();
             f.restore()
         }
         f.restore();
-        A && A.width && f.drawImage(A, h - A.width - 10, 10);
-        P = Math.max(P, Cb());
-        0 != P && (null == Ca && (Ca = new Da(12, "#FFFFFF")), Ca.u(ha("score") + ": " + ~~(P / 100)), c = Ca.F(), a = c.width, f.globalAlpha = .3, f.fillStyle = "#000000", f.fillRect(4, q - 5 - 12 - 5, a + 5, 17), f.globalAlpha = 1, f.drawImage(c, 6, q - 5 - 12 - 3));
-        bc();
+        A && A.width && f.drawImage(A, viewportWidth - A.width - 10, 10);
+        P = Math.max(P, computeCurrentMass());
+        0 != P && (null == Ca && (Ca = new TextSprite(12, "#FFFFFF")), Ca.u(translateKey("score") + ": " + ~~(P / 100)), c = Ca.F(), a = c.width, f.globalAlpha = .3, f.fillStyle = "#000000", f.fillRect(4, viewportHeight - 5 - 12 - 5, a + 5, 17), f.globalAlpha = 1, f.drawImage(c, 6, viewportHeight - 5 - 12 - 3));
+        drawTouchIndicator();
         b = Date.now() - b;
         b > 1E3 / 60 ? G -= .01 : b < 1E3 / 65 && (G += .01);
         .4 > G && (G = .4);
         1 < G && (G = 1);
-        b = F - Db;
-        !$() || fa || V ? (s += b / 2E3, 1 < s && (s = 1)) : (s -= b / 300, 0 > s && (s = 0));
-        0 < s ? (f.fillStyle = "#000000", Eb ? (f.globalAlpha = s, f.fillRect(0, 0, h, q), E.complete && E.width && (E.width / E.height < h / q ? (b = h, a = E.height * h / E.width) : (b = E.width * q / E.height, a = q), f.drawImage(E, (h - b) / 2, (q - a) / 2, b, a), f.globalAlpha = .5 * s, f.fillRect(0, 0, h, q))) : (f.globalAlpha = .5 * s, f.fillRect(0, 0, h, q)), f.globalAlpha = 1) : Eb = !1;
-        Db = F
+        b = currentFrameTimeMs - previousFrameTimeMs;
+        !isSocketOpen() || fa || V ? (s += b / 2E3, 1 < s && (s = 1)) : (s -= b / 300, 0 > s && (s = 0));
+        0 < s ? (f.fillStyle = "#000000", Eb ? (f.globalAlpha = s, f.fillRect(0, 0, viewportWidth, viewportHeight), E.complete && E.width && (E.width / E.height < viewportWidth / viewportHeight ? (b = viewportWidth, a = E.height * viewportWidth / E.width) : (b = E.width * viewportHeight / E.height, a = viewportHeight), f.drawImage(E, (viewportWidth - b) / 2, (viewportHeight - a) / 2, b, a), f.globalAlpha = .5 * s, f.fillRect(0, 0, viewportWidth, viewportHeight))) : (f.globalAlpha = .5 * s, f.fillRect(0, 0, viewportWidth, viewportHeight)), f.globalAlpha = 1) : Eb = !1;
+        previousFrameTimeMs = currentFrameTimeMs
     }
 
-    function ac() {
+    function drawBackgroundGrid() {
         f.fillStyle = Ba ? "#111111" : "#F2FBFF";
-        f.fillRect(0, 0, h, q);
+        f.fillRect(0, 0, viewportWidth, viewportHeight);
+        if (.08 > g) return;
         f.save();
         f.strokeStyle = Ba ? "#AAAAAA" : "#000000";
+        var step = 50,
+            minPixelSpacing = 18,
+            pixelSpacing = step * g;
+        pixelSpacing < minPixelSpacing && (step *= Math.ceil(minPixelSpacing / Math.max(pixelSpacing, .001)));
         f.globalAlpha = .2 * g;
-        for (var a = h / g, b = q / g, c = (-t + a / 2) % 50; c < a; c += 50) f.beginPath(), f.moveTo(c * g - .5, 0), f.lineTo(c * g - .5, b * g), f.stroke();
-        for (c = (-u + b / 2) % 50; c < b; c += 50) f.beginPath(), f.moveTo(0, c * g - .5), f.lineTo(a * g, c * g - .5), f.stroke();
+        for (var a = viewportWidth / g, b = viewportHeight / g, c = (-cameraX + a / 2) % step; c < a; c += step) f.beginPath(), f.moveTo(c * g - .5, 0), f.lineTo(c * g - .5, b * g), f.stroke();
+        for (c = (-cameraY + b / 2) % step; c < b; c += step) f.beginPath(), f.moveTo(0, c * g - .5), f.lineTo(a * g, c * g - .5), f.stroke();
         f.restore()
     }
 
-    function bc() {
+    function drawMapBorder() {
+        if (!(za > xa && Aa > ya)) return;
+        f.save();
+        f.strokeStyle = Ba ? "#D8D8D8" : "#222222";
+        f.globalAlpha = .9;
+        f.lineWidth = 4 / g;
+        f.strokeRect(xa, ya, za - xa, Aa - ya);
+        f.restore()
+    }
+
+    function drawTouchIndicator() {
         if (fb && Za.width) {
-            var a = h / 5;
+            var a = viewportWidth / 5;
             f.drawImage(Za, 5, 5, a, a)
         }
     }
 
-    function Cb() {
-        for (var a = 0, b = 0; b < l.length; b++) a += l[b].m * l[b].m;
+    function computeCurrentMass() {
+        for (var a = 0, b = 0; b < playerCells.length; b++) a += playerCells[b].m * playerCells[b].m;
         return a
     }
 
-    function qb() {
+    function rebuildSpectateRenderAggregates() {
+        spectateLargestCellIdsByName = {};
+        spectateTotalMassByName = {};
+        if (0 != playerCells.length) return;
+        for (var a = {}, b = 0; b < allCells.length; ++b) {
+            var c = allCells[b];
+            if (0 < c.id && c.name) {
+                var d = c.name.toLowerCase(),
+                    e = c.size * c.size / 100;
+                spectateTotalMassByName[d] = (spectateTotalMassByName[d] || 0) + e;
+                (!a[d] || c.size > a[d].size) && (a[d] = c)
+            }
+        }
+        for (d in a) a.hasOwnProperty(d) && (spectateLargestCellIdsByName[a[d].id] = !0)
+    }
+
+    function resetTeamMassGraphHistory() {
+        teamMassGraphHistory = [];
+        lastKnownTeamMassTotal = 0
+    }
+
+    function computeTeamMassTotals(a) {
+        function b(a) {
+            return 7 == a.length && "#" == a.charAt(0) ? {
+                r: parseInt(a.substr(1, 2), 16),
+                g: parseInt(a.substr(3, 2), 16),
+                b: parseInt(a.substr(5, 2), 16)
+            } : null
+        }
+        for (var c = [], d = [], e = 0; e < a; ++e) {
+            c[e] = 0;
+            var f = b(cc[e + 1] || "");
+            d.push(f || {
+                r: 255,
+                g: 255,
+                b: 255
+            })
+        }
+        for (e = 0; e < allCells.length; ++e) {
+            var g = allCells[e];
+            if (0 < g.id && !g.f && 12 < g.size) {
+                var h = b((g.color || "").toLowerCase());
+                if (h) {
+                    for (var k = 0, l = Number.MAX_VALUE, m = 0; m < d.length; ++m) {
+                        var n = h.r - d[m].r,
+                            p = h.g - d[m].g,
+                            q = h.b - d[m].b,
+                            r = n * n + p * p + q * q;
+                        r < l && (l = r, k = m)
+                    }
+                    c[k] += g.size * g.size / 100
+                }
+            }
+        }
+        return c
+    }
+
+    function sampleTeamMassGraphHistory() {
+        if (null == B || 0 != playerCells.length) return;
+        var a = computeTeamMassTotals(B.length),
+            b = 0,
+            c;
+        for (c = 0; c < a.length; ++c) b += a[c];
+        if (0 >= b) {
+            0 < lastKnownTeamMassTotal && resetTeamMassGraphHistory();
+            lastKnownTeamMassTotal = 0;
+            return
+        }
+        if (teamMassGraphHistory.length != a.length) {
+            teamMassGraphHistory = [];
+            for (c = 0; c < a.length; ++c) teamMassGraphHistory[c] = []
+        }
+        for (c = 0; c < a.length; ++c) {
+            var d = teamMassGraphHistory[c];
+            d.push(a[c]);
+            d.length > teamMassGraphMaxSamples && d.shift()
+        }
+        lastKnownTeamMassTotal = b
+    }
+
+    function rebuildLeaderboardCanvas() {
         A = null;
         if (null != B || 0 != w.length)
             if (null != B || Ea) {
                 A = document.createElement("canvas");
                 var a = A.getContext("2d"),
-                    b = 60,
-                    b = null == B ? b + 24 * w.length : b + 180,
-                    c = Math.min(140, .3 * h) / 200;
+                    teamBaseY = 251,
+                    teamRowSpacing = 25,
+                    teamBottomPad = 22,
+                    showTeamMassGraphs = null != B && 0 == playerCells.length,
+                    teamCount = null == B ? 0 : B.length,
+                    graphTopPad = 26,
+                    graphRowHeight = 42,
+                    graphRowGap = 12,
+                    graphBottomPad = 6,
+                    graphSectionHeight = showTeamMassGraphs ? graphTopPad + graphRowHeight * Math.max(teamCount, 1) + graphRowGap * Math.max(teamCount - 1, 0) + graphBottomPad - 10 : 0,
+                    b = null == B ? 60 + 24 * w.length : Math.max(240, teamBaseY + teamBottomPad + teamRowSpacing * Math.max(teamCount - 1, 0) + graphSectionHeight),
+                    c = Math.min(140, .3 * viewportWidth) / 200;
                 A.width = 200 * c;
                 A.height = b * c;
                 a.scale(c, c);
@@ -531,21 +713,103 @@
                 a.globalAlpha = 1;
                 a.fillStyle = "#FFFFFF";
                 c = null;
-                c = ha("leaderboard");
-                a.font = "30px Ubuntu";
+                c = translateKey("leaderboard");
+                a.font = "30px ServerFont";
                 a.fillText(c, 100 - a.measureText(c).width / 2, 40);
                 if (null == B)
-                    for (a.font = "18px Ubuntu", b = 0; b < w.length; ++b) c = w[b].name || ha("unnamed_cell"), Ea || (c = ha("unnamed_cell")), -1 != z.indexOf(w[b].id) ? (l[0].name && (c = l[0].name), a.fillStyle = "#FFAAAA") : a.fillStyle = "#FFFFFF", c = b + 1 + ". " + c, a.fillText(c, 100 - a.measureText(c).width / 2, 70 + 24 * b);
-                else
+                    for (a.font = "18px ServerFont", b = 0; b < w.length; ++b) c = w[b].name || translateKey("unnamed_cell"), Ea || (c = translateKey("unnamed_cell")), -1 != playerCellIds.indexOf(w[b].id) ? (playerCells[0] && playerCells[0].name && (c = playerCells[0].name), a.fillStyle = "#FFAAAA") : a.fillStyle = "#FFFFFF", c = b + 1 + ". " + c, a.fillText(c, 100 - a.measureText(c).width / 2, 70 + 24 * b);
+                else {
+                    var teamNames = ["Red", "Orange", "Yellow", "Green", "Teal", "Blue", "Purple", "Magenta", "Rose", "Brown", "Olive", "Slate"];
                     for (b = c = 0; b < B.length; ++b) {
                         var d = c + B[b] * Math.PI * 2;
-                        a.fillStyle = cc[b + 1];
+                        a.fillStyle = cc[b + 1] || cc[b % (cc.length - 1) + 1];
                         a.beginPath();
                         a.moveTo(100, 140);
                         a.arc(100, 140, 80, c, d, !1);
                         a.fill();
                         c = d
                     }
+                    var teams = [];
+                    for (b = 0; b < B.length; ++b) teams.push({
+                        index: b,
+                        pct: B[b],
+                        color: cc[b + 1] || cc[b % (cc.length - 1) + 1],
+                        name: teamNames[b] || ("Team " + (b + 1))
+                    });
+                    teams.sort(function(a, b) {
+                        return b.pct - a.pct;
+                    });
+                    var baseY = teamBaseY;
+                    a.font = "16px ServerFont";
+                    a.textBaseline = "middle";
+                    for (b = 0; b < teams.length; ++b) {
+                        var rowY = baseY + teamRowSpacing * b;
+                        var row = teams[b];
+                        a.fillStyle = row.color;
+                        a.fillRect(16, rowY - 6, 12, 12);
+                        a.fillStyle = "#FFFFFF";
+                        var pctText = (100 * row.pct).toFixed(1) + "%";
+                        var leftText = row.name;
+                        a.textAlign = "left";
+                        a.fillText(leftText, 34, rowY);
+                        a.textAlign = "right";
+                        a.fillText(pctText, 184, rowY);
+                    }
+                    if (showTeamMassGraphs) {
+                        var graphStartY = teamBaseY + teamRowSpacing * Math.max(teamCount - 1, 0) + graphTopPad,
+                            graphX = 16,
+                            graphWidth = 168,
+                            graphStep = graphRowHeight + graphRowGap,
+                            graphInnerPadX = 6,
+                            graphInnerPadY = 8;
+                        if (teamMassGraphHistory.length != teamCount)
+                            for (teamMassGraphHistory = [], b = 0; b < teamCount; ++b) teamMassGraphHistory[b] = [];
+                        for (b = 0; b < teamCount; ++b) {
+                            rowY = graphStartY + graphStep * b + graphRowHeight / 2;
+                            var rowColor = cc[b + 1] || cc[b % (cc.length - 1) + 1],
+                                points = teamMassGraphHistory[b] || [],
+                                rowMaxMass = 6000,
+                                graphTop = rowY - graphRowHeight / 2,
+                                lineX = graphX + graphInnerPadX,
+                                lineY = graphTop + graphInnerPadY,
+                                lineWidth = graphWidth - 2 * graphInnerPadX,
+                                lineHeight = graphRowHeight - 2 * graphInnerPadY;
+                            for (c = 0; c < points.length; ++c) rowMaxMass = Math.max(rowMaxMass, points[c]);
+                            a.globalAlpha = .28;
+                            a.fillStyle = "#000000";
+                            a.fillRect(graphX, graphTop, graphWidth, graphRowHeight);
+                            a.globalAlpha = .36;
+                            a.fillStyle = rowColor;
+                            a.fillRect(graphX, graphTop, graphWidth, graphRowHeight);
+                            a.globalAlpha = .22;
+                            a.strokeStyle = "#FFFFFF";
+                            a.lineWidth = 1;
+                            a.strokeRect(graphX + .5, graphTop + .5, graphWidth - 1, graphRowHeight - 1);
+                            a.globalAlpha = 1;
+                            if (1 < points.length) {
+                                a.strokeStyle = "rgba(0,0,0,0.35)";
+                                a.lineWidth = 3;
+                                a.beginPath();
+                                for (c = 0; c < points.length; ++c) {
+                                    var px = lineX + c / (points.length - 1) * lineWidth,
+                                        py = lineY + lineHeight - points[c] / rowMaxMass * lineHeight;
+                                    0 == c ? a.moveTo(px, py) : a.lineTo(px, py)
+                                }
+                                a.stroke();
+                                a.strokeStyle = "rgba(0,0,0,0.2)";
+                                a.lineWidth = 2;
+                                a.beginPath();
+                                for (c = 0; c < points.length; ++c) {
+                                    px = lineX + c / (points.length - 1) * lineWidth,
+                                        py = lineY + lineHeight - points[c] / rowMaxMass * lineHeight;
+                                    0 == c ? a.moveTo(px, py) : a.lineTo(px, py)
+                                }
+                                a.stroke()
+                            } else 1 == points.length && (a.fillStyle = "rgba(0,0,0,0.45)", a.fillRect(lineX + lineWidth - 2, rowY - 1, 2, 2), a.fillStyle = "rgba(0,0,0,0.2)", a.fillRect(lineX + lineWidth - 1, rowY - 1, 2, 2));
+                        }
+                    }
+                    a.textAlign = "left";
+                }
             }
     }
 
@@ -557,7 +821,7 @@
         this.b = e
     }
 
-    function Z(a, b, c, d, e, f) {
+    function CellEntity(a, b, c, d, e, f) {
         this.id = a;
         this.o = this.x = b;
         this.p = this.y = c;
@@ -568,23 +832,23 @@
         this.t(f)
     }
 
-    function Xb(a) {
+    function rgbIntToHex(a) {
         for (a = a.toString(16); 6 > a.length;) a = "0" + a;
         return "#" + a
     }
 
-    function Da(a, b, c, d) {
+    function TextSprite(a, b, c, d) {
         a && (this.q = a);
         b && (this.M = b);
         this.O = !!c;
         d && (this.r = d)
     }
 
-    function dc(a) {
+    function shuffleInPlace(a) {
         for (var b = a.length, c, d; 0 < b;) d = Math.floor(Math.random() * b), b--, c = a[b], a[b] = a[d], a[d] = c
     }
 
-    function Y(a, b) {
+    function updateProfileProgress(a, b) {
         var c = "1" == e("#helloContainer").attr("data-has-account-data");
         e("#helloContainer").attr("data-has-account-data", "1");
         if (null == b && d.localStorage[U]) {
@@ -598,7 +862,7 @@
             var p = +e(".agario-exp-bar .progress-bar-text").first().text().split("index.html")[0],
                 c = +e(".agario-exp-bar .progress-bar-text").first().text().split("index.html")[1].split(" ")[0],
                 n = e(".agario-profile-panel .progress-bar-star").first().text();
-            if (n != a.d) Y({
+            if (n != a.d) updateProfileProgress({
                 e: c,
                 c: c,
                 d: n
@@ -610,12 +874,12 @@
                 });
                 setTimeout(function() {
                     e(".agario-exp-bar .progress-bar-text").text(a.c + "/" + a.c + " XP");
-                    Y({
+                    updateProfileProgress({
                         e: 0,
                         c: a.c,
                         d: a.d
                     }, function() {
-                        Y(a, b)
+                        updateProfileProgress(a, b)
                     })
                 }, 1E3)
             });
@@ -625,6 +889,7 @@
                         var c;
                         c = (Date.now() - f) / 1E3;
                         c = 0 > c ? 0 : 1 < c ? 1 : c;
+                        // Smoothstep easing keeps progress animation fast at the ends and smooth in the middle.
                         c = c * c * (3 - 2 * c);
                         e(".agario-exp-bar .progress-bar-text").text(~~(p + (a.e - p) * c) + "/" + a.c + " XP");
                         e(".agario-exp-bar .progress-bar").css("width", (88 * (p + (a.e - p) * c) / a.c).toFixed(2) + "%");
@@ -635,18 +900,18 @@
         } else e(".agario-profile-panel .progress-bar-star").text(a.d), e(".agario-exp-bar .progress-bar-text").text(a.e + "/" + a.c + " XP"), e(".agario-exp-bar .progress-bar").css("width", (88 * a.e / a.c).toFixed(2) + "%"), b && b()
     }
 
-    function Fb(a) {
+    function applyLoginData(a) {
         "string" == typeof a && (a = JSON.parse(a));
-        Date.now() + 18E5 > a.expires ? e("#helloContainer").attr("data-logged-in", "0") : (d.localStorage[U] = JSON.stringify(a), D = a.authToken, e(".agario-profile-name").text(a.name), pb(), Y({
+        Date.now() + 18E5 > a.expires ? e("#helloContainer").attr("data-logged-in", "0") : (d.localStorage[U] = JSON.stringify(a), D = a.authToken, e(".agario-profile-name").text(a.name), sendAuthTokenIfAvailable(), updateProfileProgress({
             e: a.xp,
             c: a.xpNeeded,
             d: a.level
         }), e("#helloContainer").attr("data-logged-in", "1"))
     }
 
-    function ec(a) {
+    function parseLoginResponsePayload(a) {
         a = a.split("\n");
-        Fb({
+        applyLoginData({
             name: a[0],
             fbid: a[1],
             authToken: a[2],
@@ -657,85 +922,27 @@
         })
     }
 
-    function ab(a) {
-        if ("connected" == a.status) {
-            var b = a.authResponse.accessToken;
-            console.log(b);
-            d.FB.api("/me/picture?width=180&height=180", function(a) {
-                d.localStorage.fbPictureCache = a.data.url;
-                e(".agario-profile-picture").attr("src", a.data.url)
-            });
-            e("#helloContainer").attr("data-logged-in", "1");
-            null != D ? e.ajax(ea + "checkToken", {
-                error: function() {
-                    D = null;
-                    ab(a)
-                },
-                success: function(a) {
-                    a = a.split("\n");
-                    Y({
-                        d: +a[0],
-                        e: +a[1],
-                        c: +a[2]
-                    })
-                },
-                dataType: "text",
-                method: "POST",
-                cache: !1,
-                crossDomain: !0,
-                data: D
-            }) : e.ajax(ea + "facebookLogin", {
-                error: function() {
-                    D = null;
-                    e("#helloContainer").attr("data-logged-in", "0")
-                },
-                success: ec,
-                dataType: "text",
-                method: "POST",
-                cache: !1,
-                crossDomain: !0,
-                data: b
-            })
-        }
-    }
-
-    function kb(a) {
-        ga(":party");
-        e("#helloContainer").attr("data-party-state", "4");
+    function joinPartyByHash(a) {
+        setGameModeUiState(":party");
+        e("#helloContainer").attr("data-party-state", "5");
         a = decodeURIComponent(a).replace(/.*#/gim, "");
-        bb("#" + d.encodeURIComponent(a));
-        e.ajax(ea + "getToken", {
-            error: function() {
-                e("#helloContainer").attr("data-party-state", "6")
-            },
-            success: function(b) {
-                b = b.split("\n");
-                e(".partyToken").val("//agario.fun/" + d.encodeURIComponent(a));
-                e("#helloContainer").attr("data-party-state", "5");
-                ga(":party");
-                Ma(a)
-            },
-            dataType: "text",
-            method: "POST",
-            cache: !1,
-            crossDomain: !0,
-            data: a
-        })
+        replaceHistoryHash("#" + d.encodeURIComponent(a));
+        connectToServer(a)
     }
 
-    function bb(a) {
+    function replaceHistoryHash(a) {
         d.history && d.history.replaceState && d.history.replaceState({}, d.document.title, a)
     }
 
-    function Wb(a, b) {
-        var c = -1 != z.indexOf(a.id),
-            d = -1 != z.indexOf(b.id),
+    function trackCellEatStats(a, b) {
+        var c = -1 != playerCellIds.indexOf(a.id),
+            d = -1 != playerCellIds.indexOf(b.id),
             e = 30 > b.size;
         c && e && ++Sa;
         e || !c || d || ++Va
     }
 
-    function Gb(a) {
+    function formatElapsedTime(a) {
         a = ~~a;
         var b = (a % 60).toString();
         a = (~~(a / 60)).toString();
@@ -743,17 +950,17 @@
         return a + ":" + b
     }
 
-    function fc() {
+    function getCurrentTopPosition() {
         if (null == w) return 0;
         for (var a = 0; a < w.length; ++a)
-            if (-1 != z.indexOf(w[a].id)) return a + 1;
+            if (-1 != playerCellIds.indexOf(w[a].id)) return a + 1;
         return 0
     }
 
-    function Yb() {
+    function renderStatsPanel() {
         e(".stats-food-eaten").text(Sa);
-        e(".stats-time-alive").text(Gb((ub - tb) / 1E3));
-        e(".stats-leaderboard-time").text(Gb(Wa));
+        e(".stats-time-alive").text(formatElapsedTime((ub - tb) / 1E3));
+        e(".stats-leaderboard-time").text(formatElapsedTime(Wa));
         e(".stats-highest-mass").text(~~(P / 100));
         e(".stats-cells-eaten").text(Va);
         e(".stats-top-position").text(0 == T ? ":(" : T);
@@ -790,30 +997,28 @@
         }
     }
     if (!d.agarioNoInit) {
-        var cb = d.location.protocol,
-            Qb = "https:" == cb,
-            ea = cb + "//agario.fun/",
-            Fa = d.navigator.userAgent;
-        if (-1 != Fa.indexOf("Android")) d.ga && d.ga("send", "event", "MobileRedirect", "PlayStore"), setTimeout(function() {}, 1E3);
-        else if (-1 != Fa.indexOf("iPhone") || -1 != Fa.indexOf("iPad") || -1 != Fa.indexOf("iPod")) d.ga && d.ga("send", "event", "MobileRedirect", "AppStore"), setTimeout(function() {}, 1E3);
+        var userAgent = d.navigator.userAgent;
+        if (-1 != userAgent.indexOf("Android")) setTimeout(function() {}, 1E3);
+        else if (-1 != userAgent.indexOf("iPhone") || -1 != userAgent.indexOf("iPad") || -1 != userAgent.indexOf("iPod")) setTimeout(function() {}, 1E3);
         else {
-            var Ha, f, L, h, q, da = null,
-                r = null,
-                t = 0,
-                u = 0,
-                z = [],
-                l = [],
-                J = {},
-                v = [],
-                X = [],
+            var Ha, f, L, viewportWidth, viewportHeight, da = null,
+                gameSocket = null,
+                cameraX = 0,
+                cameraY = 0,
+                playerCellIds = [],
+                playerCells = [],
+                cellsById = {},
+                allCells = [],
+                fadingCells = [],
                 w = [],
-                na = 0,
-                oa = 0,
-                ra = -1,
-                sa = -1,
-                $b = 0,
-                F = 0,
-                Db = 0,
+                mouseScreenX = 0,
+                mouseScreenY = 0,
+                mouseWorldTargetX = -1,
+                mouseWorldTargetY = -1,
+                currentFrameTimeMs = 0,
+                previousFrameTimeMs = 0,
+                spectateLargestCellIdsByName = {},
+                spectateTotalMassByName = {},
                 I = null,
                 xa = 0,
                 ya = 0,
@@ -828,11 +1033,14 @@
                 P = 0,
                 Ba = !1,
                 Ib = !1,
-                ja = t = ~~((xa + za) / 2),
-                ka = u = ~~((ya + Aa) / 2),
-                la = 1,
+                lastCameraTargetX = cameraX = ~~((xa + za) / 2),
+                lastCameraTargetY = cameraY = ~~((ya + Aa) / 2),
+                lastTargetScale = 1,
                 W = "",
                 B = null,
+                teamMassGraphHistory = [],
+                teamMassGraphMaxSamples = 250,
+                lastKnownTeamMassTotal = 0,
                 Ga = !1,
                 Qa = !1,
                 Oa = 0,
@@ -840,7 +1048,7 @@
                 va = 0,
                 wa = 0,
                 Jb = 0,
-                cc = ["#333333", "#FF3333", "#33FF33", "#3333FF"],
+                cc = ["#333333", "#d24646", "#d2823c", "#c8b43c", "#78aa46", "#3caa8c", "#3c8cd2", "#7864d2", "#aa5abe", "#b46478", "#8c6e46", "#5a8246", "#5a8296"],
                 Ya = !1,
                 ia = !1,
                 rb = 0,
@@ -848,7 +1056,7 @@
                 N = 1,
                 s = 1,
                 fa = !1,
-                Ja = 0,
+                connectionAttemptId = 0,
                 Eb = !0,
                 Na = {};
             (function() {
@@ -866,15 +1074,20 @@
             if ("undefined" == typeof console || "undefined" == typeof DataView || "undefined" == typeof WebSocket || null == Kb || null == Kb.getContext || null == d.localStorage) alert("You browser does not support this game, we recommend you to use Firefox to play this");
             else {
                 d.setNick = function(a) {
-                    d.ga && d.ga("send", "event", "Nick", a.toLowerCase());
-                    lb();
+                    hideMainPanels();
+                    pendingSpectate = !1;
+                    spectateInputEnabled = !1;
+                    spectateMoveUp = !1;
+                    spectateMoveLeft = !1;
+                    spectateMoveDown = !1;
+                    spectateMoveRight = !1;
                     I = a;
-                    $() || M();
-                    wb();
+                    isSocketOpen() || connectIfReady();
+                    sendPendingNick();
                     P = 0
                 };
-                d.setRegion = qa;
-                var Ka = !0;
+                d.setRegion = setRegionSelection;
+                var isFirstMenuOpen = !0;
                 d.setJelloPhysics = function(a) {
                     Hb = a
                 };
@@ -892,48 +1105,53 @@
                 };
                 d.spectate = function() {
                     I = null;
-                    H(1);
-                    lb()
+                    hideMainPanels();
+                    spectateInputEnabled = !0;
+                    if (isSocketOpen()) sendActionOpcode(1);
+                    else pendingSpectate = !0, connectIfReady()
                 };
                 d.setGameMode = function(a) {
-                    a != W && (":party" == W && e("#helloContainer").attr("data-party-state", "0"), ga(a))
+                    a != W && (":party" == W && e("#helloContainer").attr("data-party-state", "0"), setGameModeUiState(a))
                 };
                 d.setAcid = function(a) {
                     Ya = a
                 };
                 null != d.localStorage && (null == d.localStorage.AB9 && (d.localStorage.AB9 = 0 + ~~(100 * Math.random())), Jb = +d.localStorage.AB9, d.ABGroup = Jb);
                 var O = null;
-                d.connect = Ma;
-                var ua = 500,
-                    Xa = null,
+                d.connect = connectToServer;
+                var Xa = null,
+                    pendingSpectate = !1,
+                    spectateInputEnabled = !1,
+                    spectateMoveUp = !1,
+                    spectateMoveLeft = !1,
+                    spectateMoveDown = !1,
+                    spectateMoveRight = !1,
                     xb = 0,
                     yb = -1,
                     zb = -1;
                 d.refreshPlayerInfo = function() {
-                    H(253)
+                    sendActionOpcode(253)
                 };
                 var A = null,
                     G = 1,
                     Ca = null,
-                    aa = {},
-                    Lb = "poland;usa;china;russia;vinesauce;canada;australia;spain;brazil;germany;ukraine;france;sweden;chaplin;north korea;south korea;japan;united kingdom;earth;greece;latvia;lithuania;estonia;finland;norway;cia;maldivas;austria;nigeria;reddit;yaranaika;confederate;9gag;indiana;4chan;italy;bulgaria;tumblr;2ch.hk;hong kong;portugal;jamaica;german empire;mexico;sanik;switzerland;croatia;chile;indonesia;bangladesh;thailand;iran;iraq;peru;moon;botswana;bosnia;netherlands;european union;taiwan;pakistan;hungary;satanist;qing;hitler;nazi;godfather;nasa;pirate1;twitter;youtube;2ch;turkey;trabzonspor;thuglife;texas;stussy;steam;stalin;somalia;sir;sealand;scotland;romania;receita federal;quebec;prussia;prodota;pokerface;piccolo;pewdiepie;patriarchy;origin;nah;mhp;matriarchy;mars;luxembourg;kc;isis;ireland;india;imperial japan;gamerrocko;galatasaray;french kingdom;fenerbahce;feminism;facepunch;facebook;ea;doge;denmark;chp;cambodia;byzantium;besiktas;belgium;bait;ayy lmao;ataturk;argentina;aog;anonim;akp;8ch;8;berlusconi;blatter;boris;bush;cameron;chavez;clinton;cuba;dilma;fidel;hillary;hollande;irs;kim jong-un;merkel;obama;palin;putin;qing dynasty;queen;trump;tsarist russia;tsipras;ussr;wojak;venezuela;bruce lee;osmanli;google;alien;mr. bean;bruce lee;adolf hitler;chuck norris;gangnam style;pou;talking angela;talking tom;angry birds;barbie;schwarzenegger;barbıe;chucky;stallone;jeanclaudedamme;jackie chan;yip man;pierce brosnan;al pacino;hay day;pink panther;pinocchio;tom and jerry;bugs bunny;baby hazel;taz-mania;spiderman;fred and barney;russell crowe;jason statham;jim carrey;leonardo;batman;peter pan;beetle juice;superman;he-man;hulk;dracula;turkmenistan;kazakhstan;kyrgyzstan;tajikistan;uzbekistan;fiji;kiribati;marshallıslands;micronesia;nauru;new zealand;palau;papuanewguinea;samoa;solomon ıslands;tonga;tuvalu;vanuatu;egypt;ısrael;catalonia;czech republic;colombia;algeria;belarus;north brabant;friesland;albania;cyprus;ıceland;liechtenstein;macedonia;malta;moldova;serbia;slovakia;slovenia;soccer;baseball;rainbow;pacman;illuminati;alabama;alaska;baghdadi;baratheon;bart;beavis;brian;butthead;cartman;coca cola;creeper;death star;dirt block;dollar;donut;euro;eye of sauron;finn;forever alone;giraffe;girl;godzilla;google chrome;hello kitty;herobrine;hole;homer;ice king;jew;kirchner;lannister;lenny face;leopard;lgbt;marceline;marge;montgomery;pizza;pokemon;rockstar;sheep;skeleton1;steve;stewie;targaryen;tiger;zebra;zombie;yugoslavia;jolokia pepper;troll;sungerbob;el salvador;basketball;ınstagram;mona lisa;mario;erdogan;davutoglu;mortal kombat;mcdonald's;atarı;apple;army;banana;birdie;bite;bomb;bowling;breakfast;brofist;bug;candy;cat;cloud;cookie;crazy;dog;donuts;evil;eye;frog;galaxy;goldfish;halloween;heart;hockey;ıce king;jupiter;luchador;mercury;monster;mouse;mushroom;neptune;nose;nuclear;octopus;owl;panda;pluto;radar;saturn;scarecrow;seal;snowman;spy;sun;target;terrible;toxic;turtle;uranus;venus;virus;wolf;polıce;pirate;bubblegum;enderman;heisenberg;jake;lisa;peter;kirby;awesome;ı love google;anna frozen;cinderella;elsa;counter-strike;frogout;gaston;blobfish;luigi;mr. popo;spongegar;spurdo;stitch;garfield;ıron man;ninja turtles;joker;saw;santa claus1;christmas tree;kendall draeger;bat;bear;cougar;coyote;crocodile;fly;fox;hunter;kraken;lion;lizard;mammoth;master chief;panther;raptor;shark;shrek;snake;spider;sumo;t-rex;wasp;bonibon;jelibon;smurfs;eye illusions;airplane;helicopter;train;whatsapp;ship;google search;space shuttle;error;taylor swift;katy perry;jennifer lopez;rihanna;inna;i love google;kennedy;snoop dogg;casper;caillou;the jetsons;scooby doo;iron man;atari;instagram;wing chun;police;tintin;call of duty;robocop;terminator;everthrill;asterix;bart simpson;donald duck;daisy duck;mickey mouse;atom ant;yogi bear;boo boo;wile e. coyote;road runner;cedric;denver dinosaur;daffy duck;ghostbusters;heidi;speedy gonzales;red riding hood;the mask;e.t.;minecraft;killer clown;king kong;ariel;dora;rapunzel;sofia;black hole;halo;star ball;hot dog;piggie;blueberry;hamburger;moo;tomato;ghost;footprint;apple face;pineapple;toon;smile;sad;facepalm;brain;evil eye;ufo;spiderman2;shuttle;cs go;astronaut;rocket;rainbow1;boot;gold pot;hat;leprechaun;mr. bean1;meteor;alien1;space dog;choco egg;carrot;statue;rooster;rabbit;watermelon1;eye2;arcade;power;green man;slime face;jelly blob;alien x;space hunter;thirteen;crow;black cat;mask;witch;soccer ball;keeper;soccer boot;striker;star player;chihuahua;cactus;sombrero;chilli pepper;chupa cabra;earth day;april fool;gingerbread;cupcake;boy kiss;girl kiss;cupid;tender bear;funshine bear;bright raccoon;cozy penguin;lotsa elephant;brave lion;crazy ball;sky rocket;starsandstripes;mighty;uncle sam;mummy ball;eye ball;baseball smile;hornhead;skull face;cannon ball;eagle;sunbath;watermelon;star fish;icecream face;surfer;diver;liberty;birthday sanik;birthday wojak;birthday cia;birthday sir;birthday doge;birthday troll;birthday lol;hot coffee;soda can;jelly face;french fries;burger face;tortilha;chicken leg;tennis;gymnastic;judo fighter;swimmer;athletic;cake;leaf clover;blue;green;red;yellow;pinhata;alan;gordon;john;scott;the hood;sherbert;virgil;kayo;parrot;rascal;pirate maiden;captain skull;captain;bullseye;touche;jab;backswing;spike;flame;gamma;neila;omicron;vega;smyg;white horse;monk;water spirit;boar;kong;new basketball;bull king;inspectorgadget;richie rich;she-ra;snoopy;sylvester;tweety;popeye;transformers;terminita;sea explorer;jade dragon;golf;horse shoe;mico;monkey;ping pong;squiggly;toco;love;water drop;squirrel;acorn;maple;badger;prey;300 spartans;pine head;sea turtle;volcano;coco nuts;warrior;viper;biker;desert fox;ranger;devourer;toxic eater;ogre;scavenger;marauder;mutant;dead raider;undead;phantom;werewolf;mummy;vampire;masked;ooze;grey tiger;infernando;calavera;pumpkin;calaca;frankenstein;skeleton;poison rose;skull cactus;arachno kid;star girl;tiger man;dr. cosmos;infernando;iron knight;matjoy;n0psa;omega blast;sly;x-ray;aqua;dark matter;major eagle;colossus;ignis;terra;thanksgiving;pie slice;virginia;pilgrim;mr. pumpkin;aer;raider;faun;bread;croc;happy;hazmat;nuke;pug;berserker;champion;icy braid;jotun;viking;winter wolf;basilisk;firebird;dark wings;gryphon;magic gerbil;pixie;hobgoblin;root gnome;cosmo pirate;cyber guard;space warden;moon ship;star pilot;reindeer;penguin;polar bear;flying cork;happy soda;elf helper;santa claus;husky brawl;kempo tiger;street bull;rhino boxer;rogue bunny;bruiser goat;wicked cat;best friends;time dude;chrono ranger;time doctor;cool agent;neon bug;dynamite guy;duck target;jumper;bubblesaurus;kosovo;chicken;china dragon;fire rooster;carp;dumpling;bad boy;heartbreaker;poet;superstar;idol;rocker;virtuoso;drone;king;love arrow;choco heart;strawberry;sheriff;jade;thief;tiny jack;merry outlaw;trickster;bird mask;palm tree;samba;mountain;golden mask;icon;soloist;metal face;songsmith;diva;performer;dragon;gargoyle;gopher;blue swirl;bunny;evil master;ısland scar;sirius;tyt;behemoth;huntsman;war paint;general;giant skull;great zilla;bad clover;happy hat;horse boot;cat cauldron;excalibur;mystic bird;seal knight;air bag;cyber agent;detective;droid;funny face;gold rush;magic hat;red beard;smelly;frog thai;karate parrot;king lion;raccoon jutsu;coil;cool bunny;easter chick;wacky egg;destroyer;eyeball;storm fist;taurus;war hero;alien tree;crystal;hot taco;maracas;power badger;starfighter;crazy sombrero;primal;sabertooth;silver tusk;amber;fire face;gemini;stone tool;fallen;power girl;wacky hero;bat ball;eyepatch;jellyfish ball;mega power;sheep ball;skull ribbon;walrus ball;guy fawkes mask;apocalypse rider;eclipse hunter;universal ranger;elephant ball;pig ball;slaughter;slingblade;professional;lionel messi;tıtanıc;cyber scarab;haste;mechatron;psycho driller;sonic boom;zodiac cancer;celebration hat;mr. boss;star eagle;bitter;cursed blade;funky;gladiatrix;helm;hungry;lovesick;odd;orc grunt;orc warrior;queasy;reptilian;sad2;vicious;cool;full;mischievous;sweaty;tough;wicked;crazy brain;dry face;zombie dog;oyster;voltron;dumbo;archer;mage;paladin;rogue;tıtanıc;black hole;gold coin;super car;war tank;war wings;virgo;dazzled;delighted;hercules;medusa;nerdy;pixel kong;poseidon;power fighter;rabid;raid boss;rayday;scroll;silent fox;techno kid;the maw;zombie party;ınna;insectoid;olympus ares;zap;healing potion;irma hurricane;funny;dragon griffin;dragon hydra;dragon twin;Ä±sland scar;ajdar;cloud prism;cogs;football strike;nvr shadow;agar.lol;dr. static;steam freak;ankh;cleopatra;egyptian cat;pharaoh;ankh;anubis;cursed blade;elder master;geisha;hades;orc grunt;shogun;skull samurai;banshee;dragon viper;metal ghoul;psycho;balrog;blanka;chun lı;dhalsım;e.honda;guıle;ken;m.bıson;ryu;sagat;vega;zangıef;bean whistler;bolt samurai;mega mecha;spinner kid;power ninja;hmm;jason;snowboarder;white owl;goofy yeti;barbarian;dire wolf;frog Kid;frost giant;giant human;ımp;jackal;night hunter;nvr shuriken;sagittarius;salamander  ;leo;spark;walking hand;warlock;wendigo;wood elf;pepsi;agario.fun;agar.fun;burly man;firespitter;genie;ringmaster;the oracle;the gaunt;the miasma;the reaper;the scorcher;alpaca;aries;bullet man;capricorn;circus grizzly;libra;mad cap;raspy elf;scorpio;soul hunter;wicked clown;zany tree;devil;fire giant;little zilla;phoenix;purple dragon;sausage;snack shark;worm skull;red dragon;spooky;gouache;pencil;splatter;cave painting;cave troll;crazy eye;nice doggy;party mode;yeti;mr. bean face;circle;coolguy;duel master;furious;steam mask;robo kid;flying saucer;infernus;shadow man;big eyes;necktie cat;tea time;burner;candlelight;crazy bolt;eye five;future art;groovy canvas;hornet;sea wizard;spike flower;alien kid;bubble fish;cyber commando;elven noble;eternal snake;pyramid eye;reaper;snow biker;triceratops;wolf sigil;logan;supertank.io;slartie;chirpy raptor;frost hand;omega;radical smile;helmet;lead;wolf paw;idea;party time;skull bow;surprised cat;unicorn;bootlegger;madjawz;skull artifact;angel;deadly piranha;heavy metal;prankster;som theorist;wacky hyena;zone;birthday blob;death mouse;egyptian plague;grumpy frog;killer mask;cool lion;dark sorceress;princess swift;tooth troll;bad pigeon;bass bomb;feather dragon;lightning;merchant bionic;silly griffin;sugardash;ashwin;baby octopus;cyber demon;fallen one;goddess aona;golden axe;grandma;guinea pig;hunter leech;metal scorpion;midnight yeti;mutant herb;old one;olympus zeus;scarecrows;spike fish;techno ninja;zula gorgan;charming;cyber psychic;diamonds;dumboon;electro jelly;electronic girl;guardian;puzzled;strange;cursed samurai;fire golem;spectral owl;araneaphyx;necro strangler;neptunus spider;sinbad;blobby boy;dracool;frankie;chillpanzee;corsair;mad fragment;tape guy;think tank;cookie mouse;ice griffin;ironfist titus;nightmare;power mask;silent nun;space ink;space warrior;dapper dog;ice crystal;planet cat;bewitched;big banjo;masked menace;monday worker;of light;walrus art;pinkie pie;good morning;good bye;virus2;agar.love;candy troll;darts of fury;dynamite;getdeadkid;ısland seer;madness;squid;abductor;aquarius;astral deer;awkward;bad santa;beat box;beetoothven;bionic ram;birthosaur;blue skull;brute prankster;bull skull;cactus flower;candy genius;captain joe;cat burglar;cog attack;color runner;cosmic horse;crazy rudolph;cuppy;cyber monk;cyber punk;cybernaut;demonic helmet;divine pearl;dragon razor;dragon slayer;eager alien;egypt scarab;evil genie;forest spirit;fox mask;game host;gnome mage;golf battle;good boy;husky;hyper coffee;jelly bear;love cat;lucky doll;mad muffin;mariachi;mechanicat;melting man;mexican skull;moon alisa;mr goose;mummy king;murder ball;mushroom face;nutcracker;pepe loco;pisces;poker ace;power glove;psycho panda;punk;red fiend;rocket deer;rogue samurai;roller bot;sandworm;shrieker;skull magician;skull swords;sleepy fox;slime beast;smooth operator;snout;snowy joe;sour candy;spogh;steam diver;sunflower;suplex;techno quack;the stranger;tiny reaper;troldir;unknown totem;vampy;voracious;war mask;warhorse;wasted mouse;watson;wicked vendetta;wide eye;wilson;wolf man;yellow streak;demolition expert;awesome pug;coconuts;cool duck;crazy dog;cyclops;head ball 2;kristoffer;leviathan;mistik;odd shroom;purple hacker;rainbow slap;skull claus;snay;zone2;battle angel;jelly diver;songbird;tlingit mask;toco bones;bunny tron;carnivorous;chip cookie;clever;electro chick;meme rage;power2;titan cthulhu;bad bone;baddie;chilled homie;dog life;omnom gator;swag royalty;x-mas;ark raider;bad pepper;coronavirus;dollhouse;kobe;sonic;sweetie".split(";"),
-                    hc = "8;nasa;kim jong-un;trump;queen;palin;fidel;hillary;berlusconi;blatter;boris;bush;cameron;chavez;clinton;cuba;venezuela;tsipras;putin;dilma;hollande;merkel;obama;aog;google;twitter;youtube;pirate1;alien;mr. bean;bruce lee;adolf hitler;chuck norris;gangnam style;pou;talking angela;talking tom;angry birds;barbie;schwarzenegger;barbıe;chucky;stallone;jeanclaudedamme;jackie chan;yip man;pierce brosnan;al pacino;hay day;pink panther;pinocchio;tom and jerry;bugs bunny;baby hazel;taz-mania;spiderman;fred and barney;russell crowe;jason statham;jim carrey;leonardo;batman;peter pan;beetle juice;superman;he-man;hulk;dracula;soccer;baseball;rainbow;pacman;baratheon;bart;beavis;brian;butthead;cartman;coca cola;creeper;death star;dirt block;dollar;donut;euro;eye of sauron;finn;forever alone;giraffe;girl;godzilla;google chrome;hello kitty;herobrine;hole;homer;ice king;jew;kirchner;lannister;lenny face;leopard;lgbt;marceline;marge;montgomery;pizza;pokemon;rockstar;sheep;skeleton1;steve;stewie;targaryen;tiger;zebra;zombie;jolokia pepper;troll;sungerbob;basketball;ınstagram;mona lisa;mario;erdogan;davutoglu;mortal kombat;mcdonald's;atarı;apple;army;banana;birdie;bite;bomb;bowling;breakfast;brofist;bug;candy;cat;cloud;cookie;crazy;dog;donuts;evil;eye;frog;goldfish;halloween;heart;hockey;ıce king;luchador;monster;mouse;mushroom;nose;nuclear;octopus;owl;panda;radar;scarecrow;seal;snowman;spy;target;terrible;toxic;turtle;;virus;wolf;polıce;pirate;bubblegum;enderman;heisenberg;jake;lisa;peter;kirby;awesome;ı love google;anna frozen;cinderella;elsa;counter-strike;frogout;gaston;blobfish;luigi;mr. popo;spongegar;spurdo;stitch;garfield;ıron man;ninja turtles;joker;saw;santa claus1;christmas tree;kendall draeger;bat;bear;cougar;coyote;crocodile;fly;fox;hunter;kraken;lion;lizard;mammoth;master chief;panther;raptor;shark;shrek;snake;spider;sumo;t-rex;wasp;bonibon;jelibon;smurfs;eye illusions;airplane;helicopter;train;whatsapp;ship;google search;space shuttle;error;taylor swift;katy perry;jennifer lopez;rihanna;inna;i love google;kennedy;snoop dogg;casper;caillou;the jetsons;scooby doo;iron man;atari;instagram;wing chun;police;tintin;call of duty;robocop;terminator;everthrill;asterix;bart simpson;donald duck;daisy duck;mickey mouse;atom ant;yogi bear;boo boo;wile e. coyote;road runner;cedric;denver dinosaur;daffy duck;ghostbusters;heidi;speedy gonzales;red riding hood;the mask;e.t.;minecraft;killer clown;king kong;ariel;dora;rapunzel;sofia;halo;star ball;hot dog;piggie;blueberry;hamburger;moo;smile;tomato;ghost;footprint;apple face;pineapple;toon;sad;facepalm;brain;evil eye;ufo;spiderman2;shuttle;cs go;astronaut;rocket;rainbow1;boot;gold pot;hat;leprechaun;mr. bean1;meteor;alien1;space dog;choco egg;carrot;statue;rooster;rabbit;watermelon1;eye2;arcade;power;green man;slime face;jelly blob;alien x;space hunter;thirteen;crow;black cat;mask;witch;soccer ball;keeper;soccer boot;striker;star player;chihuahua;cactus;sombrero;chilli pepper;chupa cabra;earth day;april fool;gingerbread;cupcake;boy kiss;girl kiss;cupid;tender bear;funshine bear;bright raccoon;cozy penguin;lotsa elephant;brave lion;crazy ball;sky rocket;starsandstripes;mighty;uncle sam;mummy ball;eye ball;baseball smile;hornhead;skull face;cannon ball;eagle;sunbath;watermelon;star fish;icecream face;surfer;diver;liberty;birthday sanik;birthday wojak;birthday cia;birthday sir;birthday doge;birthday troll;birthday lol;hot coffee;soda can;jelly face;french fries;burger face;tortilha;chicken leg;;tennis;gymnastic;judo fighter;swimmer;athletic;cake;leaf clover;blue;green;red;yellow;pinhata;alan;gordon;john;scott;the hood;sherbert;virgil;kayo;parrot;rascal;pirate maiden;captain skull;captain;bullseye;touche;jab;backswing;spike;flame;gamma;neila;omicron;vega;smyg;white horse;monk;water spirit;boar;kong;new basketball;bull king;inspectorgadget;richie rich;she-ra;snoopy;sylvester;tweety;popeye;transformers;terminita;sea explorer;jade dragon;golf;horse shoe;mico;monkey;ping pong;squiggly;toco;love;water drop;squirrel;acorn;maple;badger;prey;300 spartans;pine head;sea turtle;volcano;coco nuts;warrior;viper;biker;desert fox;ranger;devourer;toxic eater;ogre;scavenger;marauder;mutant;dead raider;undead;phantom;werewolf;mummy;vampire;masked;ooze;grey tiger;infernando;calavera;pumpkin;calaca;frankenstein;skeleton;poison rose;skull cactus;arachno kid;star girl;tiger man;dr. cosmos;infernando;iron knight;matjoy;n0psa;omega blast;sly;x-ray;aqua;dark matter;major eagle;colossus;ignis;terra;thanksgiving;pie slice;virginia;pilgrim;mr. pumpkin;aer;raider;faun;bread;croc;happy;hazmat;nuke;pug;berserker;champion;icy braid;jotun;viking;winter wolf;basilisk;firebird;dark wings;gryphon;magic gerbil;pixie;hobgoblin;root gnome;cosmo pirate;cyber guard;space warden;moon ship;star pilot;reindeer;penguin;polar bear;flying cork;happy soda;elf helper;santa claus;husky brawl;kempo tiger;street bull;rhino boxer;rogue bunny;bruiser goat;wicked cat;best friends;time dude;chrono ranger;time doctor;cool agent;neon bug;dynamite guy;duck target;jumper;bubblesaurus;chicken;china dragon;fire rooster;carp;dumpling;;bad boy;heartbreaker;poet;superstar;idol;rocker;virtuoso;drone;king;love arrow;choco heart;strawberry;sheriff;jade;thief;tiny jack;merry outlaw;trickster;bird mask;palm tree;samba;mountain;golden mask;icon;soloist;metal face;songsmith;diva;performer;dragon;gargoyle;gopher;blue swirl;bunny;evil master;ısland scar;sirius;tyt;behemoth;huntsman;war paint;general;giant skull;great zilla;bad clover;happy hat;horse boot;cat cauldron;excalibur;mystic bird;seal knight;air bag;cyber agent;detective;droid;funny face;gold rush;magic hat;red beard;smelly;frog thai;karate parrot;king lion;raccoon jutsu;coil;cool bunny;easter chick;wacky egg;destroyer;eyeball;storm fist;taurus;war hero;alien tree;crystal;hot taco;maracas;power badger;starfighter;crazy sombrero;primal;sabertooth;silver tusk;amber;fire face;gemini;stone tool;fallen;power girl;wacky hero;bat ball;eyepatch;jellyfish ball;mega power;sheep ball;skull ribbon;walrus ball;guy fawkes mask;rider;eclipse hunter;universal ranger;elephant ball;pig ball;slaughter;slingblade;professional;lionel messi;tıtanıc;cyber scarab;haste;mechatron;psycho driller;sonic boom;zodiac cancer;celebration hat;mr. boss;star eagle;bitter;cursed blade;funky;gladiatrix;helm;hungry;lovesick;odd;orc grunt;orc warrior;queasy;reptilian;sad2;vicious;cool;full;mischievous;sweaty;tough;wicked;crazy brain;dry face;zombie dog;oyster;voltron;dumbo;archer;mage;paladin;rogue;tıtanıc;black hole;gold coin;super car;war tank;war wings;virgo;dazzled;delighted;hercules;medusa;nerdy;pixel kong;poseidon;power fighter;rabid;raid boss;rayday;scroll;silent fox;techno kid;the maw;zombie party;ınna;insectoid;olympus ares;zap;healing potion;irma hurricane;funny;dragon griffin;dragon hydra;dragon twin;Ä±sland scar;ajdar;cloud prism;cogs;football strike;nvr shadow;agar.lol;dr. static;steam freakankh;cleopatra;egyptian cat;pharaoh;ankh;anubis;cursed blade;elder master;geisha;hades;orc grunt;shogun;skull samurai;banshee;dragon viper;metal ghoul;psycho;balrog;blanka;chun lı;dhalsım;e.honda;guıle;ken;m.bıson;ryu;sagat;vega;zangıef;bean whistler;bolt samurai;mega mecha;spinner kid;power ninja;hmm;jason;snowboarder;white owl;goofy yeti;barbarian;dire wolf;frog Kid;frost giant;giant human;ımp;jackal;night hunter;nvr shuriken;sagittarius;salamander  ;leo;spark;walking hand;warlock;wendigo;wood elf;pepsi;agario.fun;agar.fun;burly man;firespitter;genie;ringmaster;the oracle;the gaunt;the miasma;the reaper;the scorcher;alpaca;aries;bullet man;capricorn;circus grizzly;libra;mad cap;raspy elf;scorpio;soul hunter;wicked clown;zany tree;devil;fire giant;little zilla;phoenix;purple dragon;sausage;snack shark;worm skull;red dragon;spooky;gouache;pencil;splatter;cave painting;cave troll;crazy eye;nice doggy;party mode;yeti;mr. bean face;circle;coolguy;duel master;furious;steam mask;robo kid;flying saucer;infernus;shadow man;big eyes;necktie cat;tea time;burner;candlelight;crazy bolt;eye five;future art;groovy canvas;hornet;sea wizard;spike flower;alien kid;bubble fish;cyber commando;elven noble;eternal snake;pyramid eye;reaper;snow biker;triceratops;wolf sigil;logan;supertank.io;slartie;chirpy raptor;frost hand;omega;radical smile;helmet;lead;wolf paw;idea;party time;skull bow;surprised cat;unicorn;bootlegger;madjawz;skull artifact;angel;deadly piranha;heavy metal;prankster;som theorist;wacky hyena;zone;birthday blob;death mouse;egyptian plague;grumpy frog;killer mask;cool lion;dark sorceress;princess swift;tooth troll;bad pigeon;bass bomb;feather dragon;lightning;merchant bionic;silly griffin;sugardash;ashwin;baby octopus;cyber demon;fallen one;goddess aona;golden axe;grandma;guinea pig;hunter leech;metal scorpion;midnight yeti;mutant herb;old one;olympus zeus;scarecrows;spike fish;techno ninja;zula gorgan;charming;cyber psychic;diamonds;dumboon;electro jelly;electronic girl;guardian;puzzled;strange;cursed samurai;fire golem;spectral owl;araneaphyx;necro strangler;neptunus spider;sinbad;blobby boy;dracool;frankie;chillpanzee;corsair;mad fragment;tape guy;think tank;cookie mouse;ice griffin;ironfist titus;nightmare;power mask;silent nun;space ink;space warrior;dapper dog;ice crystal;planet cat;bewitched;big banjo;masked menace;monday worker;of light;walrus art;pinkie pie;good morning;good bye;virus2;agar.love;candy troll;darts of fury;dynamite;getdeadkid;ısland seer;madness;squid;abductor;aquarius;astral deer;awkward;bad santa;beat box;beetoothven;bionic ram;birthosaur;blue skull;brute prankster;bull skull;cactus flower;candy genius;captain joe;cat burglar;cog attack;color runner;cosmic horse;crazy rudolph;cuppy;cyber monk;cyber punk;cybernaut;demonic helmet;divine pearl;dragon razor;dragon slayer;eager alien;egypt scarab;evil genie;forest spirit;fox mask;game host;gnome mage;golf battle;good boy;husky;hyper coffee;jelly bear;love cat;lucky doll;mad muffin;mariachi;mechanicat;melting man;mexican skull;moon alisa;mr goose;mummy king;murder ball;mushroom face;nutcracker;pepe loco;pisces;poker ace;power glove;psycho panda;punk;red fiend;rocket deer;rogue samurai;roller bot;sandworm;shrieker;skull magician;skull swords;sleepy fox;slime beast;smooth operator;snout;snowy joe;sour candy;spogh;steam diver;sunflower;suplex;techno quack;the stranger;tiny reaper;troldir;unknown totem;vampy;voracious;war mask;warhorse;wasted mouse;watson;wicked vendetta;wide eye;wilson;wolf man;yellow streak;demolition expert;awesome pug;coconuts;cool duck;crazy dog;cyclops;head ball 2;kristoffer;leviathan;mistik;odd shroom;purple hacker;rainbow slap;skull claus;snay;zone2;battle angel;jelly diver;songbird;tlingit mask;toco bones;bunny tron;carnivorous;chip cookie;clever;electro chick;meme rage;power2;titan cthulhu;bad bone;baddie;chilled homie;dog life;omnom gator;swag royalty;x-mas;ark raider;bad pepper;coronavirus;dollhouse;kobe;sonic;sweetie".split(";"),
-                    ba = {},
-                    lastFrame = Date.now();
-                function ib() {
-                    d.requestAnimationFrame(ib);
+                    Lb = [],
+                    hc = [];
+                function mainAnimationLoop() {
+                    d.requestAnimationFrame(mainAnimationLoop);
 
-                    var now = Date.now();
-                    lastFrame = now;
-
-                    if (!$() || Date.now() - rb < 240) {
-                        Ab(); // game render
+                    if (!isSocketOpen() || Date.now() - rb < 240) {
+                        renderGameFrame(); // game render
                     } else {
                         console.warn("Skipping draw");
                     }
 
-                    gc(); // UI render
+                    renderUiCanvases(); // UI render
                 }
+
+                // Static-client mode: disable remote skin keyword lists and social-name filters.
+                if (Array.isArray(Lb)) Lb.length = 0;
+                if (Array.isArray(hc)) hc.length = 0;
 
                 $a.prototype = {
                     P: null,
@@ -942,7 +1160,7 @@
                     g: 0,
                     b: 0
                 };
-                Z.prototype = {
+                CellEntity.prototype = {
                     id: 0,
                     a: null,
                     name: null,
@@ -968,22 +1186,22 @@
                     V: null,
                     R: function() {
                         var a;
-                        for (a = 0; a < v.length; a++)
-                            if (v[a] == this) {
-                                v.splice(a, 1);
+                        for (a = 0; a < allCells.length; a++)
+                            if (allCells[a] == this) {
+                                allCells.splice(a, 1);
                                 break
                             }
-                        delete J[this.id];
-                        a = l.indexOf(this); - 1 != a && (Ra = !0, l.splice(a, 1));
-                        a = z.indexOf(this.id); - 1 != a && z.splice(a, 1);
+                        delete cellsById[this.id];
+                        a = playerCells.indexOf(this); - 1 != a && (Ra = !0, playerCells.splice(a, 1));
+                        a = playerCellIds.indexOf(this.id); - 1 != a && playerCellIds.splice(a, 1);
                         this.A = !0;
-                        0 < this.S && X.push(this)
+                        0 < this.S && fadingCells.push(this)
                     },
                     i: function() {
                         return Math.max(~~(.3 * this.size), 24)
                     },
                     t: function(a) {
-                        if (this.name = a) null == this.k ? this.k = new Da(this.i(), "#FFFFFF", !0, "#000000") : this.k.G(this.i()), this.k.u(this.name)
+                        if (this.name = a) null == this.k ? this.k = new TextSprite(this.i(), "#FFFFFF", !0, "#000000") : this.k.G(this.i()), this.k.u(this.name)
                     },
                     Q: function() {
                         for (var a = this.B(); this.a.length > a;) {
@@ -997,10 +1215,6 @@
                         if (Hb) { 20 > this.size && (a = 6); }
                         else { 20 > this.size && (a = 0); }
                         this.f && (a = 30);
-                        if (this.f) {
-                            var c = ~~(2 * Math.PI * this.size / 12);
-                            return Math.max(Math.min(c, 240), a)
-                        }
                         var b = this.size;
                         this.f || (b *= g);
                         b *= G;
@@ -1009,6 +1223,7 @@
                         return ~~Math.max(b, a)
                     },
                     da: function() {
+                        // Smooth each blob point with neighbor averaging to keep the wobble organic but stable.
                         this.Q();
                         for (var a = this.a, b = a.length, c = 0; c < b; ++c) {
                             var d = a[(c - 1 + b) % b].b,
@@ -1018,7 +1233,7 @@
                             10 < a[c].b && (a[c].b = 10); - 10 > a[c].b && (a[c].b = -10);
                             a[c].b = (d + e + 8 * a[c].b) / 10
                         }
-                        for (var f = this, l = this.f ? 0 : (this.id / 1E3 + F / 1E4) % (2 * Math.PI), c = 0; c < b; ++c) {
+                        for (var f = this, l = this.f ? 0 : (this.id / 1E3 + currentFrameTimeMs / 1E4) % (2 * Math.PI), c = 0; c < b; ++c) {
                             var k = a[c].g,
                                 d = a[(c - 1 + b) % b].g,
                                 e = a[(c + 1) % b].g;
@@ -1046,12 +1261,12 @@
                     J: function() {
                         if (0 >= this.id) return 1;
                         var a;
-                        a = (F - this.K) / 120;
+                        a = (currentFrameTimeMs - this.K) / 120;
                         a = 0 > a ? 0 : 1 < a ? 1 : a;
                         var b = 0 > a ? 0 : 1 < a ? 1 : a;
                         this.i();
                         if (this.A && 1 <= b) {
-                            var c = X.indexOf(this); - 1 != c && X.splice(c, 1)
+                            var c = fadingCells.indexOf(this); - 1 != c && fadingCells.splice(c, 1)
                         }
                         this.x = a * (this.C - this.o) + this.o;
                         this.y = a * (this.D - this.p) + this.p;
@@ -1059,7 +1274,7 @@
                         return b
                     },
                     H: function() {
-                        return 0 >= this.id ? !0 : this.x + this.size + 40 < t - h / 2 / g || this.y + this.size + 40 < u - q / 2 / g || this.x - this.size - 40 > t + h / 2 / g || this.y - this.size - 40 > u + q / 2 / g ? !1 : !0
+                        return 0 >= this.id ? !0 : this.x + this.size + 40 < cameraX - viewportWidth / 2 / g || this.y + this.size + 40 < cameraY - viewportHeight / 2 / g || this.x - this.size - 40 > cameraX + viewportWidth / 2 / g || this.y - this.size - 40 > cameraY + viewportHeight / 2 / g ? !1 : !0
                     },
                     s: function(a) {
                         if (this.H()) {
@@ -1073,7 +1288,7 @@
                                 for (var c = 0; c < this.a.length; c++) this.a[c].g = this.size;
                             this.L = b;
                             a.save();
-                            this.W = F;
+                            this.W = currentFrameTimeMs;
                             c = this.J();
                             this.A && (a.globalAlpha *= 1 - c);
                             a.lineWidth = 10;
@@ -1092,7 +1307,7 @@
                                 }
                             }
                             a.closePath();
-                            c = this.name.toLowerCase();
+                            c = this.name ? this.name.toLowerCase() : "";
                             d = null;
                             e = d;
                             b || a.stroke();
@@ -1100,9 +1315,11 @@
                             null != e && (a.save(), a.clip(), a.drawImage(e, this.x - this.size, this.y - this.size, 2 * this.size, 2 * this.size), a.restore());
                             (db || 15 < this.size) && !b && (a.strokeStyle = "#000000", a.globalAlpha *= .1, a.stroke());
                             a.globalAlpha = 1;
-                            d = -1 != l.indexOf(this);
+                            d = -1 != playerCells.indexOf(this);
+                            var isSpectating = 0 == playerCells.length,
+                                isLargeEnoughSpectateCell = !isSpectating || 50 <= 2 * this.size * g;
                             b = ~~this.y;
-                            if (0 != this.id && (Ea || d) && this.name && this.k && (null == e || -1 == hc.indexOf(c))) {
+                            if (0 != this.id && (Ea || d) && this.name && this.k && (null == e || -1 == hc.indexOf(c)) && isLargeEnoughSpectateCell) {
                                 e = this.k;
                                 e.u(this.name);
                                 e.G(this.i());
@@ -1114,12 +1331,12 @@
                                 a.drawImage(e, ~~this.x - ~~(f / 2), b - ~~(h / 2), f, h);
                                 b += e.height / 2 / c + 4
                             }
-                            0 < this.id && Ib && (d || 0 == l.length && (!this.f || this.j) && 20 < this.size) && (null == this.I && (this.I = new Da(this.i() / 2, "#FFFFFF", !0, "#000000")), d = this.I, d.G(this.i() / 2), d.u(~~(this.size * this.size / 100)), c = Math.ceil(10 * g) / 10, d.U(c), e = d.F(), f = ~~(e.width / c), h = ~~(e.height / c), a.drawImage(e, ~~this.x - ~~(f / 2), b - ~~(h / 2), f, h));
+                            0 < this.id && Ib && (d || 0 == playerCells.length && (!this.f || this.j) && 20 < this.size) && isLargeEnoughSpectateCell && (null == this.I && (this.I = new TextSprite(this.i() / 2, "#FFFFFF", !0, "#000000")), d = this.I, d.G(this.i() / 2), d.u(~~(this.size * this.size / 100)), c = Math.ceil(10 * g) / 10, d.U(c), e = d.F(), f = ~~(e.width / c), h = ~~(e.height / c), a.drawImage(e, ~~this.x - ~~(f / 2), b - ~~(h / 2), f, h));
                             a.restore()
                         }
                     }
                 };
-                Da.prototype = {
+                TextSprite.prototype = {
                     w: "",
                     M: "#000000",
                     O: !1,
@@ -1150,7 +1367,7 @@
                                 c = this.w,
                                 d = this.v,
                                 e = this.q,
-                                f = e + "px Ubuntu";
+                                f = e + "px ServerFont";
                             b.font = f;
                             var g = ~~(.2 * e);
                             a.width = (b.measureText(c).width + 6) * d;
@@ -1219,14 +1436,14 @@
                             }
                         }
                     },
-                    sb = function() {
-                        var a = new Z(0, 0, 0, 32, "#ED1C24", ""),
+                    updateLiveFavicon = function() {
+                        var a = new CellEntity(0, 0, 0, 32, "#ED1C24", ""),
                             b = document.createElement("canvas");
                         b.width = 32;
                         b.height = 32;
                         var c = b.getContext("2d");
                         return function() {
-                            0 < l.length && (a.color = l[0].color, a.t(l[0].name));
+                            0 < playerCells.length && (a.color = playerCells[0].color, a.t(playerCells[0].name));
                             c.clearRect(0, 0, 32, 32);
                             c.save();
                             c.translate(16, 16);
@@ -1240,46 +1457,20 @@
                         }
                     }();
                 e(function() {
-                    sb()
+                    updateLiveFavicon()
                 });
                 var U = "loginCache3";
                 e(function() {
-                    +d.localStorage.wannaLogin && (d.localStorage[U] && Fb(d.localStorage[U]), d.localStorage.fbPictureCache && e(".agario-profile-picture").attr("src", d.localStorage.fbPictureCache))
+                    d.localStorage[U] && applyLoginData(d.localStorage[U])
                 });
-                d.facebookLogin = function() {
-                    d.localStorage.wannaLogin = 1
-                };
-                d.fbAsyncInit = function() {
-                    function a() {
-                        d.localStorage.wannaLogin = 1;
-                        null == d.FB ? alert("You seem to have something blocking Facebook on your browser, please check for any extensions") : d.FB.login(function(a) {
-                            ab(a)
-                        }, {
-                            scope: "public_profile, email"
-                        })
-                    }
-                    d.FB.init({
-                        appId: "1023344604389308",
-                        cookie: !0,
-                        xfbml: !0,
-                        status: !0,
-                        version: "v2.2"
-                    });
-                    d.FB.Event.subscribe("auth.statusChange", function(b) {
-                        +d.localStorage.wannaLogin && ("connected" == b.status ? ab(b) : a())
-                    });
-                    d.facebookLogin = a
-                };
                 d.logout = function() {
                     D = null;
                     e("#helloContainer").attr("data-logged-in", "0");
                     e("#helloContainer").attr("data-has-account-data", "0");
-                    delete d.localStorage.wannaLogin;
                     delete d.localStorage[U];
-                    delete d.localStorage.fbPictureCache;
-                    M()
+                    connectIfReady()
                 };
-                var gc = function() {
+                var renderUiCanvases = function() {
                     function a(a, b, c, d, e) {
                         var f = b.getContext("2d"),
                             g = b.width;
@@ -1292,12 +1483,12 @@
                         a.s(f);
                         f.restore()
                     }
-                    for (var b = new Z(-1, 0, 0, 32, "#5bc0de", ""), c = new Z(-1, 0, 0, 32, "#5bc0de", ""), d = "#0791ff #5a07ff #ff07fe #ffa507 #ff0774 #077fff #3aff07 #ff07ed #07a8ff #ff076e #3fff07 #ff0734 #07ff20 #ff07a2 #ff8207 #07ff0e".split(" "), f = [], g = 0; g < d.length; ++g) {
+                    for (var b = new CellEntity(-1, 0, 0, 32, "#5bc0de", ""), c = new CellEntity(-1, 0, 0, 32, "#5bc0de", ""), d = "#0791ff #5a07ff #ff07fe #ffa507 #ff0774 #077fff #3aff07 #ff07ed #07a8ff #ff076e #3fff07 #ff0734 #07ff20 #ff07a2 #ff8207 #07ff0e".split(" "), f = [], g = 0; g < d.length; ++g) {
                         var h = g / d.length * 12,
                             k = 30 * Math.sqrt(g / d.length);
-                        f.push(new Z(-1, Math.cos(h) * k, Math.sin(h) * k, 10, d[g], ""))
+                        f.push(new CellEntity(-1, Math.cos(h) * k, Math.sin(h) * k, 10, d[g], ""))
                     }
-                    dc(f);
+                    shuffleInPlace(f);
                     var l = document.createElement("canvas");
                     l.getContext("2d");
                     l.width = l.height = 70;
@@ -1314,7 +1505,7 @@
                             h.translate(f / 2, g / 2);
                             for (var k = 0; 10 > k; ++k) h.drawImage(l, (.1 * d + 80 * k) % (f + 140) - f / 2 - 70 - 35, g / 2 * Math.sin((.001 * d + k) % Math.PI * 2) - 35, 70, 70);
                             h.restore();
-                            (c = c.attr("data-itr")) && (c = ha(c));
+                            (c = c.attr("data-itr")) && (c = translateKey(c));
                             a(b, this, c || "", +e(this).attr("data-size"), "#5bc0de")
                         });
                         e("#statsPellets").filter(":visible").each(function() {
@@ -1327,20 +1518,20 @@
                     }
                 }();
                 d.createParty = function() {
-                    ga(":party");
+                    setGameModeUiState(":party");
                     O = function(a) {
-                        bb("/#" + d.encodeURIComponent(a));
-                        e(".partyToken").val("//agario.fun/" + d.encodeURIComponent(a));
+                        replaceHistoryHash("/#" + d.encodeURIComponent(a));
+                        e(".partyToken").val("#" + d.encodeURIComponent(a));
                         e("#helloContainer").attr("data-party-state", "1")
                     };
-                    M()
+                    connectIfReady()
                 };
-                d.joinParty = kb;
+                d.joinParty = joinPartyByHash;
                 d.cancelParty = function() {
-                    bb("index.html");
+                    replaceHistoryHash("index.html");
                     e("#helloContainer").attr("data-party-state", "0");
-                    ga("");
-                    M()
+                    setGameModeUiState("");
+                    connectIfReady()
                 };
                 var x = [],
                     Sa = 0,
@@ -1354,22 +1545,22 @@
                     T = 0,
                     vb = !0;
                 setInterval(function() {
-                    Ua && x.push(Cb() / 100)
+                    Ua && x.push(computeCurrentMass() / 100)
                 }, 1E3 / 60);
                 setInterval(function() {
-                    var a = fc();
+                    var a = getCurrentTopPosition();
                     0 != a && (++Wa, 0 == T && (T = a), T = Math.min(T, a))
                 }, 1E3);
                 d.closeStats = function() {
                     V = !1;
                     e("#stats").hide();
-                    pa(0);
+                    showMainMenu(0);
                 };
                 d.setSkipStats = function(a) {
                     vb = !a
                 };
                 e(function() {
-                    e(Mb)
+                    e(initializeClient)
                 })
             }
         }
